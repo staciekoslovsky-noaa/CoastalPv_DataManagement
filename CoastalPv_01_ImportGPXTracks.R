@@ -30,7 +30,7 @@ imported <- RPostgreSQL::dbGetQuery(con, "SELECT DISTINCT gpx_file FROM surv_pv_
 imported$import <- 'Y'
 
 # Process GPX Files ---------------------------------------------------------------------
-trackfiles <- list.files(path = "//nmfs/akc-nmml/Polar_Imagery/Surveys_HS/Coastal/Originals/2019", pattern = "[^.]+?\\.(gpx)$", recursive = TRUE, full.names = TRUE)
+trackfiles <- list.files(path = "//nmfs/akc-nmml/Polar_Imagery/Surveys_HS/Coastal/Originals/2021", pattern = "[^.]+?\\.(gpx)$", recursive = TRUE, full.names = TRUE)
 x <- strsplit(trackfiles, "/")
 fnames <- sapply(x, function(x){x[length(x)]})
 trackfiles <- trackfiles[nchar(fnames) == 16 | nchar(fnames) == 17]
@@ -121,7 +121,7 @@ for(i in 1:length(trackfiles)) {
     track$altitude <- ifelse(is.na(track$ele), -99, track$ele)
     track <- subset(track, select = c("id", "gpx_file", "trackid", "segmentid", "gps_dt", "latitude", "longitude", "altitude"))
       
-    # Insert values into database
+    # Insert values into database§
     RPostgreSQL::dbWriteTable(con, c("surv_pv_cst", "geo_track_pts"), track, append = TRUE, row.names = FALSE)
     rm(track, trkID, trkID_split, next_id, date1, date2)
 }
