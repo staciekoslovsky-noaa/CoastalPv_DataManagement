@@ -1,0 +1,60 @@
+DELETE FROM surv_pv_cst.tbl_effort_priority 
+WHERE priority_process_date = '2019-08-01';
+
+INSERT INTO surv_pv_cst.tbl_effort_priority (polyid, priority_lku, priority_process_date) VALUES
+('OA00', 'H', '2019-08-01'),
+('OA02', 'H', '2019-08-01'),
+('OB04', 'H', '2019-08-01'),
+('OB05', 'H', '2019-08-01'),
+('OB06', 'H', '2019-08-01'),
+('OB07', 'H', '2019-08-01'),
+('OB08', 'H', '2019-08-01'),
+('OB12', 'H', '2019-08-01'),
+('OB13', 'H', '2019-08-01'),
+('PA03', 'H', '2019-08-01'),
+('PA04', 'H', '2019-08-01'),
+('PA07', 'H', '2019-08-01'),
+('PA11', 'H', '2019-08-01'),
+('PA12', 'H', '2019-08-01'),
+('PA14', 'H', '2019-08-01'),
+('QA01', 'H', '2019-08-01'),
+('QA02', 'H', '2019-08-01'),
+('SA00', 'H', '2019-08-01'),
+('SA03', 'H', '2019-08-01'),
+('SA19', 'H', '2019-08-01'),
+('SA20', 'H', '2019-08-01'),
+('TA21', 'H', '2019-08-01'),
+('TA22', 'H', '2019-08-01'),
+('UA00', 'H', '2019-08-01'),
+('UA03', 'H', '2019-08-01'),
+('UA06', 'H', '2019-08-01'),
+('XD00', 'H', '2019-08-01'),
+('XD01', 'H', '2019-08-01'),
+('XD04', 'H', '2019-08-01'),
+('XD05', 'H', '2019-08-01'),
+('XD06', 'H', '2019-08-01'),
+('XD07', 'H', '2019-08-01'),
+('XD09', 'H', '2019-08-01'),
+('XD10', 'H', '2019-08-01')
+;
+
+DROP VIEW surv_pv_cst.geo_priorities_201908;
+
+CREATE VIEW surv_pv_cst.geo_priorities_201908 AS
+ SELECT ROW_NUMBER() OVER( ORDER BY polyid) id, polyid,
+    geo_polys.stockid,
+    geo_polys.stockname,
+    geo_polys.station,
+    geo_polys.geom,
+    tbl_effort_priority.priority_lku AS priority
+   FROM surv_pv_cst.tbl_effort_priority
+     JOIN surv_pv_cst.geo_polys USING (polyid)
+  WHERE tbl_effort_priority.priority_process_date = '2019-07-24'::date 
+  OR tbl_effort_priority.priority_process_date = '2019-08-01'::date;
+  
+INSERT INTO surv_pv_cst.tbl_effort_priority (polyid, priority_lku, priority_process_date)
+SELECT distinct p.polyid, 'L', '2019-08-01'::date
+FROM surv_pv_cst.geo_polys p, surv_pv_cst.geo_haulout h
+WHERE p.polyid NOT IN (SELECT polyid FROM surv_pv_cst.geo_priorities_201908)
+AND ST_Intersects(p.geom, h.geom)
+AND (p.stockid = 1 OR p.stockid = 4 OR p.stockid = 5 OR p.stockid = 7)

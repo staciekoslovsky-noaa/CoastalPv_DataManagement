@@ -1,0 +1,78 @@
+
+
+ALTER TABLE surv_pv_cst.temp_count_exif
+ADD COLUMN polyid character varying (50);
+
+UPDATE surv_pv_cst.temp_count_exif
+SET polyid  = NULL;
+
+UPDATE surv_pv_cst.temp_count_exif AS c
+SET polyid = g.polyid
+FROM surv_pv_cst.geo_akpvpolys AS g
+WHERE ST_Within(c.geom, g.geom);
+
+--UPDATE surv_pv_cst.temp_count_exif AS o
+--SET polyid = n.new_polyid
+--FROM 
+--(SELECT image_name, c.polyid AS old_polyid, 
+--(SELECT polyid from surv_pv_cst.geo_akpvpolys as g
+--order by g.geom <-> c.geom limit 1) AS new_polyid
+--FROM surv_pv_cst.temp_count_exif AS c
+--WHERE c.polyid IS NULL) AS n
+--WHERE o.image_name = n.image_name; --> DOES NOT WORK AS EXPECTED BECAUSE IT USES FEATURE ENVELOPES, NOT POLYGON BOUNDARIES
+
+UPDATE surv_pv_cst.temp_count_exif AS o
+SET polyid = n.new_polyid
+FROM 
+	(SELECT i.*, g.polyid as new_polyid, e.min_dist
+	FROM surv_pv_cst.temp_count_exif i, surv_pv_cst.geo_akpvpolys g, 
+		(SELECT image_name, MIN(ST_Distance(c.geom, p.geom)) as min_dist
+	FROM surv_pv_cst.temp_count_exif c, surv_pv_cst.geo_akpvpolys p
+	WHERE c.polyid IS NULL
+	GROUP BY image_name) as e
+WHERE ST_Distance(i.geom, g.geom) = e.min_dist 
+AND i.image_name = e.image_name) AS n
+WHERE o.image_name = n.image_name;
+
+CREATE VIEW surv_pv_cst.geo_priority AS (
+WITH counts_by_poly AS (
+    SELECT image_name, photog_track_id, count_aux, count_non_pup, count_pup, polyid, geom
+    FROM surv_pv_cst.temp_count_exif),
+polycounts_by_stock AS (
+    SELECT counts_by_poly.polyid, photog_track_id, stockid, stockname, station, sum(count_aux) + sum(count_non_pup) + sum(count_pup) as total_count, surv_pv_cst.geo_akpvpolys.geom
+	FROM counts_by_poly
+	LEFT JOIN surv_pv_cst.geo_akpvpolys 
+	ON counts_by_poly.polyid = surv_pv_cst.geo_akpvpolys.polyid
+	GROUP BY counts_by_poly.polyid, photog_track_id, stockid, stockname, station, surv_pv_cst.geo_akpvpolys.geom),
+polycounts_by_poly AS (
+	SELECT polyid, stockid, stockname, station, median(total_count) AS median_count, avg(total_count) as mean_count, geom
+	FROM polycounts_by_stock
+	GROUP BY polyid, stockid, stockname, station, geom)
+    
+CREATE VIEW surv_pv_cst.geo_201706_priorities AS
+WITH counts_by_trackid AS 
+	(SELECT polyid, trackid, SUM(non_pup) AS non_pup, SUM(pup) AS pup, SUM(aux) AS aux, SUM(total) AS total
+	FROM surv_pv_cst.summ_count_by_image
+	GROUP BY polyid, trackid),
+counts_by_poly AS
+	(SELECT polyid, stockid, stockname, station, median(total) AS median_count, avg(total) as mean_count, geom
+	FROM counts_by_trackid
+	INNER JOIN surv_pv_cst.geo_akpvpolys
+	USING (polyid)
+	GROUP BY polyid, stockid, stockname, station, geom)
+SELECT rs.polyid, rs.stockid, rs.stockname, rs.station, rs.geom, rs.median_count, rs.mean_count, CASE WHEN rank <= 8 THEN 'H' ELSE 'L' END AS priority
+    FROM (
+        SELECT polyid, stockid, stockname, station, geom, median_count, mean_count, Rank() 
+          over (Partition BY stockid
+                ORDER BY median_count DESC) AS rank
+        FROM counts_by_poly WHERE median_count IS NOT NULL
+        ) rs WHERE Rank <= 20;
+
+--JUST FOR CHECKING THAT THE "BAD" OLD POLYGON ARE NO LONGER PRIORITIZED
+SELECT a.polyid as skh, b.polyid AS jml
+FROM surv_pv_cst.geo_2017_priorities a
+FULL JOIN surv_pv_cst.geo_2017_priorities_jml b
+USING (polyid)
+WHERE b.polyid IS NULL
+OR a.polyid IS NULL
+ORDER BY jml

@@ -1,0 +1,50 @@
+SELECT DISTINCT polyid, effort_type_lku, g.stockid, priority_lku
+FROM surv_pv_cst.tbl_effort
+LEFT JOIN 
+(SELECT * FROM surv_pv_cst.tbl_effort_priority
+ INNER JOIN surv_pv_cst.geo_akpvpolys
+ USING (polyid)
+ WHERE priority_process_date > '2017-01-01'
+ AND (stockid = 3 OR stockid = 4 OR stockid = 5 OR stockid = 7)) a
+USING (polyid)
+INNER JOIN surv_pv_cst.geo_akpvpolys g
+USING (polyid)
+WHERE survey_date > '2017-01-01'
+
+--UPDATE PRIORITY DATA
+DELETE FROM surv_pv_cst.tbl_effort_priority 
+WHERE priority_process_date = '2017-07-20';
+
+INSERT INTO surv_pv_cst.tbl_effort_priority (polyid, priority_lku, priority_process_date)
+SELECT polyid, priority_lku, '2017-07-20'
+FROM surv_pv_cst.tbl_effort_priority
+WHERE priority_process_date = '2017-06-05';
+
+INSERT INTO surv_pv_cst.tbl_effort_priority (polyid, priority_lku, priority_process_date)
+SELECT polyid, 'M', '2017-07-20'
+FROM surv_pv_cst.tbl_effort
+WHERE survey_date > '2017-06-05'
+AND polyid NOT IN (SELECT polyid FROM surv_pv_cst.tbl_effort_priority WHERE priority_process_date = '2017-07-20');
+
+UPDATE surv_pv_cst.tbl_effort_priority
+SET priority_lku = 'M'
+WHERE priority_process_date = '2017-07-20'
+AND polyid IN (
+    SELECT polyid 
+ FROM surv_pv_cst.tbl_effort_priority 
+ INNER JOIN surv_pv_cst.tbl_effort
+    USING (polyid)
+ WHERE priority_process_date = '2017-06-05' 
+ AND survey_date > '2017-06-01' 
+AND priority_lku = 'L');
+
+CREATE VIEW surv_pv_cst.geo_201708_priorities AS
+ SELECT polyid,
+    geo_polys.stockid,
+    geo_polys.stockname,
+    geo_polys.station,
+    geo_polys.geom,
+    tbl_effort_priority.priority_lku AS priority
+   FROM surv_pv_cst.tbl_effort_priority
+     JOIN surv_pv_cst.geo_polys USING (polyid)
+  WHERE tbl_effort_priority.priority_process_date = '2017-07-20'::date;

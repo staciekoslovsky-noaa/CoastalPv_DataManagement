@@ -1,0 +1,17 @@
+CREATE VIEW surv_pv_cst.geo_haulout_20171215 AS
+SELECT id, geom, name, polyid, stockid, stockname, latitude, longitude
+FROM surv_pv_cst.geo_haulout
+WHERE date_created <= '2017-12-15'
+AND (date_retired IS NULL OR date_retired > '2017-12-15');
+
+CREATE VIEW surv_pv_cst.geo_haulout_20180105 AS
+SELECT id, geom, name, polyid, stockid, stockname, latitude, longitude
+FROM surv_pv_cst.geo_haulout
+WHERE date_created <= '2018-01-05'
+AND (date_retired IS NULL OR date_retired > '2018-01-05');
+
+CREATE VIEW surv_pv_cst.geo_haulout_20190227 AS
+SELECT id, geom, name, polyid, stockid, stockname, latitude, longitude
+FROM surv_pv_cst.geo_haulout
+WHERE date_created <= '2019-02-27'
+AND (date_retired IS NULL OR date_retired > '2019-02-27');

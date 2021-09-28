@@ -1,0 +1,36 @@
+UPDATE surv_pv_cst.tbl_image_exif
+SET polyid = 'XXX'
+WHERE use_for_count_lku = 'N';
+
+UPDATE surv_pv_cst.tbl_image_exif
+SET polyid = NULL
+WHERE use_for_count_lku = 'X';
+
+UPDATE surv_pv_cst.tbl_image_exif
+SET polyid = NULL
+WHERE use_for_count_lku = 'Y'
+AND polyid = 'XXX'
+;
+
+UPDATE surv_pv_cst.tbl_image_exif AS c
+SET polyid = g.polyid
+FROM surv_pv_cst.geo_polys AS g
+WHERE ST_Within(c.geom, g.geom)
+AND c.polyid IS NULL
+AND use_for_count_lku = 'Y';
+
+UPDATE surv_pv_cst.tbl_image_exif AS o
+SET polyid = n.new_polyid
+FROM 
+	(SELECT i.*, g.polyid as new_polyid, e.min_dist
+	FROM surv_pv_cst.tbl_image_exif i, surv_pv_cst.geo_polys g, 
+	(SELECT image_name, MIN(ST_Distance(ST_Transform(c.geom, 3338), ST_Transform(p.geom, 3338))) as min_dist
+	FROM surv_pv_cst.tbl_image_exif c, surv_pv_cst.geo_polys p
+	WHERE (c.polyid IS NULL OR c.polyid = 'XXX')
+	AND use_for_count_lku = 'Y'
+     AND c.latitude <> 2
+     AND c.interpolated_lku <> 'X'
+	GROUP BY image_name) as e
+WHERE ST_Distance(ST_Transform(i.geom, 3338), ST_Transform(g.geom, 3338)) = e.min_dist 
+AND i.image_name = e.image_name) AS n
+WHERE o.image_name = n.image_name;

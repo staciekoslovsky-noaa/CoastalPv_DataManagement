@@ -1,0 +1,75 @@
+DELETE FROM surv_pv_cst.tbl_effort_priority 
+WHERE priority_process_date = '2019-04-16';
+
+DROP VIEW surv_pv_cst.geo_priorities_201906_alt;
+
+CREATE VIEW surv_pv_cst.geo_priorities_201906_alt AS
+WITH counts_by_poly AS
+	(SELECT polyid, stockid, stockname, station, abund_est, max(survey_date) as last_surveyed,  min(survey_date) as first_surveyed, p.geom
+	FROM surv_pv_cst.res_abundance_201902
+	INNER JOIN surv_pv_cst.geo_polys p
+	USING (polyid)
+	INNER JOIN surv_pv_cst.tbl_effort
+	USING (polyid)
+	WHERE survey_dt <= '2018-12-31'
+	and year = '2018'
+	GROUP BY polyid, stockid, stockname, station, abund_est, p.geom)
+SELECT rs.polyid, rs.stockid, rs.stockname, rs.station, rs.geom, rs.abund_est, rs.last_surveyed, rs.first_surveyed, CASE WHEN rank <= 8 THEN 'H' ELSE 'M' END AS priority
+    FROM (
+        SELECT polyid, stockid, stockname, station, c.geom, abund_est, last_surveyed, first_surveyed, Rank() 
+          over (Partition BY stockid
+                ORDER BY abund_est DESC) AS rank
+        FROM counts_by_poly c WHERE abund_est IS NOT NULL AND polyid NOT IN (SELECT polyid from surv_pv_cst.geo_polys c, surv_pv_cst.geo_stock_aleutians_ew b WHERE ST_Intersects(b.geom, ST_Transform(c.geom, 3338)))
+        ) rs WHERE Rank <= 20
+        AND stockid = 1
+UNION 
+SELECT rs.polyid, rs.stockid, rs.stockname, rs.station, rs.geom, rs.abund_est, rs.last_surveyed, rs.first_surveyed, 'L' AS priority
+    FROM (
+        SELECT polyid, stockid, stockname, station, geom, abund_est, last_surveyed, first_surveyed, Rank() 
+          over (Partition BY stockid
+                ORDER BY abund_est DESC) AS rank
+        FROM counts_by_poly 
+        ) rs WHERE Rank > 40 AND last_surveyed <= '2010-12-31' AND polyid NOT IN (SELECT polyid from surv_pv_cst.geo_polys c, surv_pv_cst.geo_stock_aleutians_ew b WHERE ST_Intersects(b.geom, ST_Transform(c.geom, 3338)))
+        AND stockid = 1
+UNION
+SELECT rs.polyid, rs.stockid, rs.stockname, rs.station, rs.geom, rs.abund_est, rs.last_surveyed, rs.first_surveyed, CASE WHEN rank <= 8 THEN 'H' ELSE 'M' END AS priority
+    FROM (
+        SELECT polyid, stockid, stockname, station, c.geom, abund_est, last_surveyed, first_surveyed, Rank() 
+          over (Partition BY stockid
+                ORDER BY abund_est DESC) AS rank
+        FROM counts_by_poly c WHERE abund_est IS NOT NULL AND polyid IN (SELECT polyid from surv_pv_cst.geo_polys c, surv_pv_cst.geo_stock_aleutians_ew b WHERE ST_Intersects(b.geom, ST_Transform(c.geom, 3338)))
+        ) rs WHERE Rank <= 20
+        AND stockid = 1
+UNION 
+SELECT polyid, stockid, stockname, station, geom, -99, '1111-01-01 01:11:11', '1111-01-01 01:11:11', 'L'
+FROM surv_pv_cst.geo_polys
+where polyid not in (select polyid from counts_by_poly)
+and stockid = 1
+--AND polyid IN (SELECT polyid from surv_pv_cst.geo_polys c, surv_pv_cst.geo_stock_aleutians_ew b WHERE ST_Intersects(b.geom, ST_Transform(c.geom, 3338)))
+UNION
+SELECT rs.polyid, rs.stockid, rs.stockname, rs.station, rs.geom, rs.abund_est, rs.last_surveyed, rs.first_surveyed, 'L' AS priority
+    FROM (
+        SELECT polyid, stockid, stockname, station, geom, abund_est, last_surveyed, first_surveyed, Rank() 
+          over (Partition BY stockid
+                ORDER BY abund_est DESC) AS rank
+        FROM counts_by_poly 
+        ) rs WHERE Rank > 40 AND last_surveyed <= '2010-12-31' AND polyid IN (SELECT polyid from surv_pv_cst.geo_polys c, surv_pv_cst.geo_stock_aleutians_ew b WHERE ST_Intersects(b.geom, ST_Transform(c.geom, 3338)))
+        AND stockid = 1
+ORDER BY polyid;
+        
+INSERT INTO surv_pv_cst.tbl_effort_priority (polyid, priority_lku, priority_process_date)
+SELECT polyid, priority, '2019-04-16'
+FROM surv_pv_cst.geo_priorities_201906_alt;
+
+DROP VIEW surv_pv_cst.geo_priorities_201906_alt;
+
+CREATE VIEW surv_pv_cst.geo_priorities_201906_alt AS
+ SELECT ROW_NUMBER() OVER( ORDER BY polyid) id, polyid,
+    geo_polys.stockid,
+    geo_polys.stockname,
+    geo_polys.station,
+    geo_polys.geom,
+    tbl_effort_priority.priority_lku AS priority
+   FROM surv_pv_cst.tbl_effort_priority
+     JOIN surv_pv_cst.geo_polys USING (polyid)
+  WHERE tbl_effort_priority.priority_process_date = '2019-04-16'::date;

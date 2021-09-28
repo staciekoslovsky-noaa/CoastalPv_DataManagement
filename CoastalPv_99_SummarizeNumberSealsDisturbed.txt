@@ -1,0 +1,9 @@
+select sum(num_disturbed)
+from (select trackid, takeoff_dt, polyid, num_disturbed, track_rep
+from surv_pv_cst.tbl_track
+inner join surv_pv_cst.tbl_effort
+using (trackid)
+where takeoff_dt >= '2017-03-25' 
+and takeoff_dt <= '2018-03-24'
+and agency = 'MML'
+and num_disturbed <> -99) a

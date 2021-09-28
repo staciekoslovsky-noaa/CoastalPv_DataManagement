@@ -1,0 +1,15 @@
+--Update coordinates where coordinates missing
+update surv_pv_cst.tbl_effort e
+set latitude = m.latitude,
+longitude = m.longitude
+from surv_pv_cst.geo_polys_midpt m
+where e.polyid = m.polyid 
+and e.latitude is null;
+
+--Update geometry
+UPDATE surv_pv_cst.tbl_effort SET geom = ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)
+
+--Update coordinates after point moved in QGIS
+UPDATE surv_pv_cst.tbl_effort 
+SET latitude = ST_Y(geom),
+longitude = ST_X(geom)

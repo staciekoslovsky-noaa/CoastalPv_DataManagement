@@ -1,0 +1,134 @@
+--DELETE FROM surv_pv_cst.tbl_effort_priority 
+--WHERE priority_process_date = '2021-07-07';
+
+DROP VIEW surv_pv_cst.geo_priorities_202108;
+
+CREATE VIEW surv_pv_cst.geo_priorities_202108 AS
+WITH counts_by_poly AS
+	(SELECT polyid, stockid, stockname, station, abund_est, max(survey_date) as last_surveyed,  min(survey_date) as first_surveyed, p.geom
+	FROM surv_pv_cst.res_abundance_201902
+	INNER JOIN surv_pv_cst.geo_polys p
+	USING (polyid)
+	INNER JOIN surv_pv_cst.tbl_effort
+	USING (polyid)
+	WHERE survey_dt <= '2020-12-31'
+	and year = '2018'
+	GROUP BY polyid, stockid, stockname, station, abund_est, p.geom)
+SELECT rs.polyid, rs.stockid, rs.stockname, rs.station, rs.geom, rs.abund_est, rs.last_surveyed, rs.first_surveyed, CASE WHEN rank <= 8 THEN 'H' ELSE 'M' END AS priority
+    FROM (
+        SELECT polyid, stockid, stockname, station, c.geom, abund_est, last_surveyed, first_surveyed, Rank() 
+          over (Partition BY stockid
+                ORDER BY abund_est DESC) AS rank
+        FROM counts_by_poly c WHERE abund_est IS NOT NULL
+        ) rs WHERE Rank <= 30
+        AND (stockid = 6 OR stockid = 8 OR stockid = 9 OR stockid = 10 OR stockid = 11 OR stockid = 12)
+UNION 
+SELECT rs.polyid, rs.stockid, rs.stockname, rs.station, rs.geom, rs.abund_est, rs.last_surveyed, rs.first_surveyed, 'L' AS priority
+    FROM (
+        SELECT polyid, stockid, stockname, station, geom, abund_est, last_surveyed, first_surveyed, Rank() 
+          over (Partition BY stockid
+                ORDER BY abund_est DESC) AS rank
+        FROM counts_by_poly 
+        ) rs WHERE Rank > 40 AND last_surveyed <= '2011-12-31' 
+        AND (stockid = 6 OR stockid = 8 OR stockid = 9 OR stockid = 10 OR stockid = 11 OR stockid = 12)
+UNION 
+SELECT polyid, stockid, stockname, station, geom, -99, '1111-01-01 01:11:11', '1111-01-01 01:11:11', 'M'
+	FROM surv_pv_cst.geo_polys
+	where polyid not in (select polyid from counts_by_poly)
+	and (stockid = 6 OR stockid = 8 OR stockid = 9 OR stockid = 10 OR stockid = 11 OR stockid = 12)
+UNION
+SELECT rs.polyid, rs.stockid, rs.stockname, rs.station, rs.geom, rs.abund_est, rs.last_surveyed, rs.first_surveyed, 'L' AS priority
+    FROM (
+        SELECT polyid, stockid, stockname, station, geom, abund_est, last_surveyed, first_surveyed, Rank() 
+          over (Partition BY stockid
+                ORDER BY abund_est DESC) AS rank
+        FROM counts_by_poly 
+        ) rs WHERE Rank > 40 AND last_surveyed <= '2011-12-31' 
+        AND (stockid = 6 OR stockid = 8 OR stockid = 9 OR stockid = 10 OR stockid = 11 OR stockid = 12)
+ORDER BY polyid;
+        
+INSERT INTO surv_pv_cst.tbl_effort_priority (polyid, priority_lku, priority_process_date)
+SELECT polyid, priority, '2021-07-07'
+FROM surv_pv_cst.geo_priorities_202108;
+
+INSERT INTO surv_pv_cst.tbl_effort_priority (polyid, priority_lku, priority_process_date)
+VALUES ('AD26', 'H', '2021-07-07'),
+('GG12', 'M', '2021-07-07'),
+('BD38', 'A', '2021-07-07'),
+('BD46', 'A', '2021-07-07'),
+('CF10', 'A', '2021-07-07'),
+('EF05', 'A', '2021-07-07')
+;
+
+UPDATE surv_pv_cst.tbl_effort_priority
+SET priority_lku = 'H'
+WHERE (polyid = 'AD23' 
+	OR polyid = 'AD24'
+	OR polyid = 'AD25'
+	OR polyid = 'AD27'
+	OR polyid = 'AD30'
+	OR polyid = 'AD31'
+	OR polyid = 'AD33'
+	OR polyid = 'AD36'
+	OR polyid = 'AD37')
+AND priority_process_date = '2021-07-07';
+
+UPDATE surv_pv_cst.tbl_effort_priority
+SET priority_lku = 'M'
+WHERE polyid = 'GG09' 
+AND priority_process_date = '2021-07-07';
+
+UPDATE surv_pv_cst.tbl_effort_priority
+SET aquaculture_site = 'Y'
+WHERE (polyid = 'AD23' 
+	OR polyid = 'AD24'
+	OR polyid = 'AD25'
+	OR polyid = 'AD26'
+	OR polyid = 'AD27'
+	OR polyid = 'AD30'
+	OR polyid = 'AD31'
+	OR polyid = 'AD33'
+	OR polyid = 'AD36'
+	OR polyid = 'AD37'
+	OR polyid = 'BD04'
+	OR polyid = 'BD24'
+	OR polyid = 'BD38'
+	OR polyid = 'BD46'
+	OR polyid = 'BD54'
+	OR polyid = 'BD61'
+	OR polyid = 'BE00'
+	OR polyid = 'BE22'
+	OR polyid = 'CE68'
+	OR polyid = 'CF10'
+	OR polyid = 'CF29'
+	OR polyid = 'EF05'
+	OR polyid = 'GF21'
+	OR polyid = 'GG08'
+	OR polyid = 'GG09'
+	OR polyid = 'GG12'
+	OR polyid = 'GG13'
+	OR polyid = 'HF25'
+	OR polyid = 'HF27'
+	OR polyid = 'IF02')
+AND priority_process_date = '2021-07-07';
+
+UPDATE surv_pv_cst.tbl_effort_priority
+SET aquaculture_site = 'N'
+WHERE aquaculture_site IS NULL
+AND priority_process_date = '2021-07-07';
+
+DROP VIEW surv_pv_cst.geo_priorities_202108;
+
+CREATE VIEW surv_pv_cst.geo_priorities_202108 AS
+ SELECT ROW_NUMBER() OVER( ORDER BY polyid) id, polyid,
+    geo_polys.stockid,
+    geo_polys.stockname,
+    geo_polys.station,
+	tbl_effort_priority.priority_lku AS priority,
+	tbl_effort_priority.aquaculture_site,
+	a.abund_est_2018,
+    geo_polys.geom
+   FROM surv_pv_cst.tbl_effort_priority
+     JOIN surv_pv_cst.geo_polys USING (polyid)
+	 LEFT JOIN (SELECT polyid, abund_est AS abund_est_2018 FROM surv_pv_cst.res_abundance_201902 WHERE year = '2018') a USING (polyid)
+  WHERE tbl_effort_priority.priority_process_date = '2021-07-07'::date;

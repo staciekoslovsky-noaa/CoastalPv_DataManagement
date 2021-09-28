@@ -1,0 +1,70 @@
+DELETE FROM surv_pv_cst.tbl_effort_priority 
+WHERE priority_process_date = '2018-06-27'
+AND polyid IN (
+SELECT polyid 
+FROM surv_pv_cst.geo_priorities_201808 e,
+surv_pv_cst.geo_stock_aleutians_ew b
+WHERE ST_Intersects(b.geom, ST_Transform(e.geom, 3338)));
+
+DROP VIEW surv_pv_cst.geo_priorities_201808;
+
+CREATE VIEW surv_pv_cst.geo_priorities_201808 AS
+WITH counts_by_poly AS
+	(SELECT polyid, stockid, stockname, station, median(non_pup + pup) AS median_count, avg(non_pup + pup) as mean_count, stddev(non_pup + pup) as sd_count, max(takeoff_dt) as last_surveyed,  min(takeoff_dt) as first_surveyed, geom
+	FROM surv_pv_cst.summ_count_by_polyid
+	INNER JOIN surv_pv_cst.geo_polys
+	USING (polyid)
+	INNER JOIN surv_pv_cst.tbl_track
+	USING (trackid)
+	WHERE survey_dt <= '2015-12-31'
+	GROUP BY polyid, stockid, stockname, station, geom)
+SELECT rs.polyid, rs.stockid, rs.stockname, rs.station, rs.geom, rs.median_count, rs.mean_count, rs.sd_count, rs.last_surveyed, rs.first_surveyed, CASE WHEN rank <= 8 THEN 'H' ELSE 'M' END AS priority
+    FROM (
+        SELECT polyid, stockid, stockname, station, c.geom, median_count, mean_count, sd_count, last_surveyed, first_surveyed, Rank() 
+          over (Partition BY stockid
+                ORDER BY median_count DESC) AS rank
+        FROM counts_by_poly c, surv_pv_cst.geo_stock_aleutians_ew b WHERE median_count IS NOT NULL AND ST_Intersects(b.geom, ST_Transform(c.geom, 3338))
+        ) rs WHERE Rank <= 20
+        AND stockid = 1
+UNION 
+SELECT polyid, stockid, stockname, station, geom, -99, -99, -99, '1111-01-01 01:11:11', '1111-01-01 01:11:11', 'L'
+FROM surv_pv_cst.geo_polys
+where polyid not in (select polyid from surv_pv_cst.summ_count_by_polyid)
+and stockid = 1
+UNION
+SELECT rs.polyid, rs.stockid, rs.stockname, rs.station, rs.geom, rs.median_count, rs.mean_count, rs.sd_count, rs.last_surveyed, rs.first_surveyed, 'L' AS priority
+    FROM (
+        SELECT polyid, stockid, stockname, station, geom, median_count, mean_count, sd_count, last_surveyed, first_surveyed, Rank() 
+          over (Partition BY stockid
+                ORDER BY median_count DESC) AS rank
+        FROM counts_by_poly 
+        ) rs WHERE Rank > 40 AND last_surveyed <= '2009-12-31'
+        AND stockid = 1
+UNION 
+SELECT polyid, stockid, stockname, station, geom, -99, -99, -99, '1111-01-01 01:11:11', '1111-01-01 01:11:11', 'L'
+FROM surv_pv_cst.geo_polys
+WHERE polyid = 'XD07'
+OR polyid = 'XD08'
+OR polyid = 'XD09'
+OR polyid = 'XD10'
+OR polyid = 'XD05'
+OR polyid = 'XD06'
+OR polyid = 'XD02'
+OR polyid = 'XD03';
+        
+INSERT INTO surv_pv_cst.tbl_effort_priority (polyid, priority_lku, priority_process_date)
+SELECT polyid, priority, '2018-06-27'
+FROM surv_pv_cst.geo_priorities_201808;
+
+DROP VIEW surv_pv_cst.geo_priorities_201808;
+
+CREATE VIEW surv_pv_cst.geo_priorities_201808 AS
+ SELECT ROW_NUMBER() OVER( ORDER BY polyid) id, polyid,
+    geo_polys.stockid,
+    geo_polys.stockname,
+    geo_polys.station,
+    geo_polys.geom,
+    tbl_effort_priority.priority_lku AS priority
+   FROM surv_pv_cst.tbl_effort_priority
+     JOIN surv_pv_cst.geo_polys USING (polyid)
+  WHERE tbl_effort_priority.priority_process_date = '2018-06-27'::date;
