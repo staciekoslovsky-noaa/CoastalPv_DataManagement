@@ -1,7 +1,0 @@
-insert into surv_pv_cst.tbl_effort (trackid, survey_date, photographer, polyid, effort_type_lku, effort_comments, latitude, longitude, num_disturbed, track_rep, flir_operator)
-select trackid, (substring(trackid, 5,4) || '-' || substring(trackid, 9, 2) || '-' || substring(trackid, 11, 2))::date as survey_date,
-substring(trackid, 1, 3) as photographer, polyid, effort_typ as effort_type_lku, effort_com as effort_comments, 
-y as latitude, x as longitude, num_distur::integer as num_disturbed, 1 as track_rep, 'N/A' as flir_operator
-from surv_pv_cst.effort_201906 t;
-
-UPDATE surv_pv_cst.tbl_effort SET geom = ST_SetSRID(ST_MakePoint(longitude, latitude), 4326) where trackid like '%2019%'

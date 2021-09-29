@@ -1,0 +1,13 @@
+1. Format data in XLS and copy data into table via Access
+2. Update next available ID for tbl_effort sequence
+3. Add coordinates for polyID and calculate geom
+UPDATE surv_pv_cst.tbl_effort e
+SET latitude = g.latitude,
+longitude = g.longitude
+FROM surv_pv_cst.geo_polys_midpt g
+WHERE e.polyid = g.polyid
+AND trackid like '%2021%';
+
+UPDATE surv_pv_cst.tbl_effort 
+SET geom = ST_SetSRID(ST_MakePoint(longitude, latitude), 4326) 
+WHERE trackid like '%2021%';
