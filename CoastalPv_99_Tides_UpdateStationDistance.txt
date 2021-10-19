@@ -1,0 +1,23 @@
+update surv_pv_cst.geo_polys p
+set distance_km = -99;
+
+update surv_pv_cst.geo_polys p
+set distance_km = ST_Distance(ST_Transform(st_centroid(p.geom), 3338), ST_Transform(t.geom, 3338))/1000
+from surv_pv_cst.geo_tidal_stations t
+where p.station = t.station;
+
+select *
+from surv_pv_cst.geo_polys
+where distance_km = -99
+order by polyid;
+
+--effort data missing tide stations
+select *
+from surv_pv_cst.tbl_effort
+--where survey_date > '2019-01-01'
+inner join surv_pv_cst.geo_polys
+using (polyid)
+where tide_height = -99
+and survey_dt <> '1111-01-01 01:11:11+00'
+and station <> 'Not applicable'
+order by polyid
