@@ -15,3 +15,68 @@ SELECT id, geom, name, polyid, stockid, stockname, latitude, longitude
 FROM surv_pv_cst.geo_haulout
 WHERE date_created <= '2019-02-27'
 AND (date_retired IS NULL OR date_retired > '2019-02-27');
+
+CREATE OR REPLACE VIEW surv_pv_cst.geo_haulout_20210105
+ AS
+ SELECT geo_haulout.id,
+    geo_haulout.geom,
+    geo_haulout.name,
+    geo_haulout.polyid,
+    geo_haulout.stockid,
+    geo_haulout.stockname,
+    geo_haulout.latitude,
+    geo_haulout.longitude,
+        CASE
+            WHEN (a.abund_est / c.num_haulout::double precision) >= 50::double precision THEN 'key haulout'::text
+            ELSE 'not key haulout'::text
+        END AS status
+   FROM surv_pv_cst.geo_haulout
+     LEFT JOIN ( SELECT res_abundance_201902.polyid,
+            res_abundance_201902.year,
+            res_abundance_201902.abund_est,
+            res_abundance_201902.abund_b95,
+            res_abundance_201902.abund_t95,
+            res_abundance_201902.trend_est,
+            res_abundance_201902.trend_b95,
+            res_abundance_201902.trend_t95
+           FROM surv_pv_cst.res_abundance_201902
+          WHERE res_abundance_201902.year = '2018'::text) a USING (polyid)
+     LEFT JOIN ( SELECT geo_haulout_1.polyid,
+            count(geo_haulout_1.id) AS num_haulout
+           FROM surv_pv_cst.geo_haulout geo_haulout_1
+          GROUP BY geo_haulout_1.polyid) c USING (polyid)
+  WHERE geo_haulout.date_created <= '2021-01-05'::date AND (geo_haulout.date_retired IS NULL OR geo_haulout.date_retired > '2021-01-05'::date)
+  ORDER BY geo_haulout.id;
+
+CREATE OR REPLACE VIEW surv_pv_cst.geo_haulout_20220414
+ AS
+ SELECT geo_haulout.id,
+    geo_haulout.geom,
+    geo_haulout.name,
+    geo_haulout.polyid,
+    geo_haulout.stockid,
+    geo_haulout.stockname,
+    geo_haulout.latitude,
+    geo_haulout.longitude,
+        CASE
+            WHEN (a.abund_est / c.num_haulout::double precision) >= 50::double precision THEN 'key haulout'::text
+            ELSE 'not key haulout'::text
+        END AS status
+   FROM surv_pv_cst.geo_haulout
+     LEFT JOIN ( SELECT res_abundance_201902.polyid,
+            res_abundance_201902.year,
+            res_abundance_201902.abund_est,
+            res_abundance_201902.abund_b95,
+            res_abundance_201902.abund_t95,
+            res_abundance_201902.trend_est,
+            res_abundance_201902.trend_b95,
+            res_abundance_201902.trend_t95
+           FROM surv_pv_cst.res_abundance_201902
+          WHERE res_abundance_201902.year = '2018'::text) a USING (polyid)
+     LEFT JOIN ( SELECT geo_haulout_1.polyid,
+            count(geo_haulout_1.id) AS num_haulout
+           FROM surv_pv_cst.geo_haulout geo_haulout_1
+          WHERE geo_haulout_1.date_created <= '2022-04-14'::date AND (geo_haulout_1.date_retired IS NULL OR geo_haulout_1.date_retired > '2022-04-14'::date)
+          GROUP BY geo_haulout_1.polyid) c USING (polyid)
+  WHERE geo_haulout.date_created <= '2022-04-14'::date AND (geo_haulout.date_retired IS NULL OR geo_haulout.date_retired > '2022-04-14'::date)
+  ORDER BY geo_haulout.id;
