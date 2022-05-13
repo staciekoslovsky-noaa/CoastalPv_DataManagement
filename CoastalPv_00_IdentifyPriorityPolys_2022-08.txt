@@ -1,0 +1,82 @@
+--DELETE FROM surv_pv_cst.tbl_effort_priority 
+--WHERE priority_process_date = '2022-05-13';
+
+--DROP VIEW surv_pv_cst.geo_priorities_202208;
+
+CREATE VIEW surv_pv_cst.geo_priorities_202208 AS
+WITH counts_by_poly AS
+	(SELECT polyid, stockid, stockname, station, abund_est, max(survey_date) as last_surveyed,  min(survey_date) as first_surveyed, p.geom
+	FROM surv_pv_cst.res_abundance_201902
+	INNER JOIN surv_pv_cst.geo_polys p
+	USING (polyid)
+	INNER JOIN surv_pv_cst.tbl_effort
+	USING (polyid)
+	WHERE survey_dt <= '2022-12-31'
+	AND year = '2018'
+	AND polyid in (SELECT DISTINCT polyid FROM surv_pv_cst.geo_haulout)
+	AND (stockid = 3 OR stockid = 6 OR stockid = 11 OR stockid = 12)
+	GROUP BY polyid, stockid, stockname, station, abund_est, p.geom)
+SELECT rs.polyid, rs.stockid, rs.stockname, rs.station, rs.geom, rs.abund_est, rs.last_surveyed, rs.first_surveyed, CASE WHEN rank <= 8 THEN 'H' ELSE 'M' END AS priority
+    FROM (
+        SELECT polyid, stockid, stockname, station, c.geom, abund_est, last_surveyed, first_surveyed, Rank() 
+          over (Partition BY stockid
+                ORDER BY abund_est DESC) AS rank
+        FROM counts_by_poly c WHERE abund_est IS NOT NULL
+        ) rs WHERE Rank <= 30
+UNION 
+SELECT rs.polyid, rs.stockid, rs.stockname, rs.station, rs.geom, rs.abund_est, rs.last_surveyed, rs.first_surveyed, 'L' AS priority
+    FROM (
+        SELECT polyid, stockid, stockname, station, geom, abund_est, last_surveyed, first_surveyed, Rank() 
+          over (Partition BY stockid
+                ORDER BY abund_est DESC) AS rank
+        FROM counts_by_poly 
+        ) rs WHERE Rank > 30 AND last_surveyed <= '2012-12-31'  
+UNION 
+SELECT polyid, stockid, stockname, station, geom, -99, '1111-01-01 01:11:11', '1111-01-01 01:11:11', 'M'
+	FROM surv_pv_cst.geo_polys
+	WHERE polyid not in (select polyid from counts_by_poly)
+	AND polyid in (SELECT DISTINCT polyid FROM surv_pv_cst.geo_haulout)
+	AND (stockid = 3 OR stockid = 6 OR stockid = 11 OR stockid = 12)
+ORDER BY polyid;
+        
+INSERT INTO surv_pv_cst.tbl_effort_priority (polyid, priority_lku, priority_process_date)
+SELECT polyid, priority, '2022-05-13'
+FROM surv_pv_cst.geo_priorities_202208;
+
+INSERT INTO surv_pv_cst.tbl_effort_priority (polyid, priority_lku, priority_process_date)
+SELECT polyid, 'H', '2022-05-13'
+FROM surv_pv_cst.geo_polys
+WHERE polyid NOT IN (SELECT polyid FROM surv_pv_cst.tbl_effort_priority WHERE priority_process_date = '2022-05-13')
+AND iliamna = 'Y'
+AND polyid in (SELECT DISTINCT polyid FROM surv_pv_cst.geo_haulout)
+--VALUES ('AD26', 'H', '2022-05-13')
+;
+
+UPDATE surv_pv_cst.tbl_effort_priority
+SET priority_lku = 'H'
+WHERE polyid in (SELECT polyid FROM surv_pv_cst.geo_polys WHERE iliamna = 'Y')
+AND polyid in (SELECT DISTINCT polyid FROM surv_pv_cst.geo_haulout)
+--polyid = 'AD23' 
+AND priority_process_date = '2022-05-13';
+
+
+UPDATE surv_pv_cst.tbl_effort_priority
+SET aquaculture_site = 'N'
+WHERE aquaculture_site IS NULL
+AND priority_process_date = '2022-05-13';
+
+DROP VIEW surv_pv_cst.geo_priorities_202208;
+
+CREATE VIEW surv_pv_cst.geo_priorities_202208 AS
+ SELECT ROW_NUMBER() OVER( ORDER BY polyid) id, polyid,
+    geo_polys.stockid,
+    geo_polys.stockname,
+    geo_polys.station,
+	tbl_effort_priority.priority_lku AS priority,
+	tbl_effort_priority.aquaculture_site,
+	a.abund_est_2018,
+    geo_polys.geom
+   FROM surv_pv_cst.tbl_effort_priority
+     JOIN surv_pv_cst.geo_polys USING (polyid)
+	 LEFT JOIN (SELECT polyid, abund_est AS abund_est_2018 FROM surv_pv_cst.res_abundance_201902 WHERE year = '2018') a USING (polyid)
+  WHERE tbl_effort_priority.priority_process_date = '2022-05-13'::date;
