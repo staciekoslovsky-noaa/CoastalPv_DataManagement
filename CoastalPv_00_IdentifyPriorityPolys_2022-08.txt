@@ -1,7 +1,7 @@
---DELETE FROM surv_pv_cst.tbl_effort_priority 
---WHERE priority_process_date = '2022-05-13';
+DELETE FROM surv_pv_cst.tbl_effort_priority 
+WHERE priority_process_date = '2022-05-13';
 
---DROP VIEW surv_pv_cst.geo_priorities_202208;
+DROP VIEW surv_pv_cst.geo_priorities_202208;
 
 CREATE VIEW surv_pv_cst.geo_priorities_202208 AS
 WITH counts_by_poly AS
@@ -48,17 +48,79 @@ SELECT polyid, 'H', '2022-05-13'
 FROM surv_pv_cst.geo_polys
 WHERE polyid NOT IN (SELECT polyid FROM surv_pv_cst.tbl_effort_priority WHERE priority_process_date = '2022-05-13')
 AND iliamna = 'Y'
-AND polyid in (SELECT DISTINCT polyid FROM surv_pv_cst.geo_haulout)
---VALUES ('AD26', 'H', '2022-05-13')
-;
+AND polyid in (SELECT DISTINCT polyid FROM surv_pv_cst.geo_haulout);
+
+INSERT INTO surv_pv_cst.tbl_effort_priority (polyid, priority_lku, priority_process_date)
+VALUES 
+('BD38', 'M', '2022-05-13'),
+('BD09', 'M', '2022-05-13');
+
+DELETE FROM surv_pv_cst.tbl_effort_priority
+WHERE priority_process_date = '2022-05-13'
+AND polyid in (SELECT DISTINCT polyid FROM surv_pv_cst.geo_polys WHERE stockid = 11)
+AND priority_lku = 'H';
+
+INSERT INTO surv_pv_cst.tbl_effort_priority (polyid, priority_lku, priority_process_date)
+VALUES 
+('AD26', 'H', '2022-05-13'),
+('AD28', 'H', '2022-05-13'),
+('AD29', 'H', '2022-05-13'),
+('AD32', 'H', '2022-05-13'),
+('AD34', 'H', '2022-05-13'),
+('AD35', 'H', '2022-05-13'),
+('AD38', 'H', '2022-05-13'),
+('AD66', 'H', '2022-05-13'),
+('BE24', 'H', '2022-05-13'),
+('BD60', 'H', '2022-05-13'),
+('BD61', 'H', '2022-05-13'),
+('BD54', 'H', '2022-05-13');
 
 UPDATE surv_pv_cst.tbl_effort_priority
 SET priority_lku = 'H'
-WHERE polyid in (SELECT polyid FROM surv_pv_cst.geo_polys WHERE iliamna = 'Y')
-AND polyid in (SELECT DISTINCT polyid FROM surv_pv_cst.geo_haulout)
---polyid = 'AD23' 
-AND priority_process_date = '2022-05-13';
+WHERE (polyid = 'AD23' 
+OR polyid = 'AD24'
+OR polyid = 'AD25'
+OR polyid = 'AD27'
+OR polyid = 'AD30'
+OR polyid = 'AD31'
+OR polyid = 'AD33'
+OR polyid = 'AD36'
+OR polyid = 'AD37')
+AND priority_process_date = '2022-05-13'; 
 
+UPDATE surv_pv_cst.tbl_effort_priority
+SET priority_lku = 'M'
+WHERE (polyid = 'BD56' 
+OR polyid = 'BE00'
+OR polyid = 'GF21'
+OR polyid = 'GG09'
+OR polyid = 'GG11'
+OR polyid = 'GG12'
+OR polyid = 'HF01'
+OR polyid = 'HF02'
+OR polyid = 'HG07'
+OR polyid = 'BD04'
+OR polyid = 'HG07')
+AND priority_process_date = '2022-05-13'; 
+
+UPDATE surv_pv_cst.tbl_effort_priority
+SET aquaculture_site = 'Y'
+WHERE (polyid = 'GF21'
+OR polyid = 'GG12'
+OR polyid = 'HG07'
+OR polyid = 'GG11'
+OR polyid = 'HF01'
+OR polyid = 'HF02'
+OR polyid = 'GG08'
+OR polyid = 'GG09'
+OR polyid = 'BD38'
+OR polyid = 'BD54'
+OR polyid = 'BD56'
+OR polyid = 'BD61'
+OR polyid = 'BE00'
+OR polyid = 'BD04'
+OR polyid = 'BD09')
+AND priority_process_date = '2022-05-13';
 
 UPDATE surv_pv_cst.tbl_effort_priority
 SET aquaculture_site = 'N'
