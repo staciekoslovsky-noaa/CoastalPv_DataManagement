@@ -50,6 +50,11 @@ WHERE polyid NOT IN (SELECT polyid FROM surv_pv_cst.tbl_effort_priority WHERE pr
 AND iliamna = 'Y'
 AND polyid in (SELECT DISTINCT polyid FROM surv_pv_cst.geo_haulout);
 
+UPDATE surv_pv_cst.tbl_effort_priority
+SET priority_lku = 'H'
+WHERE polyid IN (SELECT polyid FROM surv_pv_cst.geo_polys WHERE iliamna = 'Y')
+AND priority_process_date = '2022-05-13';
+
 INSERT INTO surv_pv_cst.tbl_effort_priority (polyid, priority_lku, priority_process_date)
 VALUES 
 ('BD38', 'M', '2022-05-13'),
