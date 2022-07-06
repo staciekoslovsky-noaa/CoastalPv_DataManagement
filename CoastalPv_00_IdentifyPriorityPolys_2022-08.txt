@@ -14,7 +14,7 @@ WITH counts_by_poly AS
 	WHERE survey_dt <= '2022-12-31'
 	AND year = '2018'
 	AND polyid in (SELECT DISTINCT polyid FROM surv_pv_cst.geo_haulout)
-	AND (stockid = 3 OR stockid = 6 OR stockid = 11 OR stockid = 12)
+	AND (stockid = 3 OR stockid = 6 OR stockid = 11 OR stockid = 12  OR stockid = 7)
 	GROUP BY polyid, stockid, stockname, station, abund_est, p.geom)
 SELECT rs.polyid, rs.stockid, rs.stockname, rs.station, rs.geom, rs.abund_est, rs.last_surveyed, rs.first_surveyed, CASE WHEN rank <= 8 THEN 'H' ELSE 'M' END AS priority
     FROM (
