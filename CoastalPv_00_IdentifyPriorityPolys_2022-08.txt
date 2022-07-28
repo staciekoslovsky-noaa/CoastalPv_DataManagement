@@ -13,7 +13,8 @@ WITH counts_by_poly AS
 	USING (polyid)
 	WHERE survey_dt <= '2022-12-31'
 	AND year = '2018'
-	AND polyid in (SELECT DISTINCT polyid FROM surv_pv_cst.geo_haulout)
+	AND polyid in (SELECT DISTINCT polyid FROM surv_pv_cst.geo_haulout_20220414)
+	AND glacier_name is NULL
 	AND (stockid = 3 OR stockid = 6 OR stockid = 11 OR stockid = 12  OR stockid = 7)
 	GROUP BY polyid, stockid, stockname, station, abund_est, p.geom)
 SELECT rs.polyid, rs.stockid, rs.stockname, rs.station, rs.geom, rs.abund_est, rs.last_surveyed, rs.first_surveyed, CASE WHEN rank <= 8 THEN 'H' ELSE 'M' END AS priority
@@ -35,7 +36,8 @@ UNION
 SELECT polyid, stockid, stockname, station, geom, -99, '1111-01-01 01:11:11', '1111-01-01 01:11:11', 'M'
 	FROM surv_pv_cst.geo_polys
 	WHERE polyid not in (select polyid from counts_by_poly)
-	AND polyid in (SELECT DISTINCT polyid FROM surv_pv_cst.geo_haulout)
+	AND polyid in (SELECT DISTINCT polyid FROM surv_pv_cst.geo_haulout_20220414)
+	AND glacier_name is NULL
 	AND (stockid = 3 OR stockid = 6 OR stockid = 11 OR stockid = 12)
 ORDER BY polyid;
         
@@ -48,7 +50,7 @@ SELECT polyid, 'H', '2022-05-13'
 FROM surv_pv_cst.geo_polys
 WHERE polyid NOT IN (SELECT polyid FROM surv_pv_cst.tbl_effort_priority WHERE priority_process_date = '2022-05-13')
 AND iliamna = 'Y'
-AND polyid in (SELECT DISTINCT polyid FROM surv_pv_cst.geo_haulout);
+AND polyid in (SELECT DISTINCT polyid FROM surv_pv_cst.geo_haulout_20220414);
 
 UPDATE surv_pv_cst.tbl_effort_priority
 SET priority_lku = 'H'
