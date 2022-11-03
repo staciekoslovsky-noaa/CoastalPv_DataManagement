@@ -70,7 +70,7 @@ con <- RPostgreSQL::dbConnect(PostgreSQL(),
                               dbname = Sys.getenv("pep_db"), 
                               host = Sys.getenv("pep_ip"), 
                               user = Sys.getenv("pep_user"), 
-                              rstudioapi::askForPassword(paste("Enter your DB password for user account: ", Sys.getenv("pep_user"), sep = "")))
+                              password = Sys.getenv("user_pw"))
 
 # Tide processing for ADFG data
 # dbSendQuery(con, paste("UPDATE surv_pv_cst.archive_poly_counts_adfg SET tide_height = NULL",
@@ -312,7 +312,7 @@ if (nrow(pribs) > 0) {
       dbSendQuery(con, paste("UPDATE surv_pv_cst.archive_poly_counts_pribs SET tide_height = -99",
                              ", nearest_high_height = -99", 
                              ", nearest_low_height = -99", 
-                             " WHERE id = ", id, sep = ""))
+                             " WHERE id = ", pribs$id[i], sep = ""))
     } else {
       # Set processing variables
       station <- pribs$station[i]
@@ -337,12 +337,12 @@ if (nrow(pribs) > 0) {
                                "\', nearest_high_height = ", high_height,
                                ", nearest_low_dt = \'", low_dt,
                                "\', nearest_low_height = ", low_height,
-                               " WHERE id = ", id, sep = ""))
+                               " WHERE id = ", pribs$id[i], sep = ""))
       } else {
         dbSendQuery(con, paste("UPDATE surv_pv_cst.archive_poly_counts_pribs SET tide_height = -99",
                                ", nearest_high_height = -99", 
                                ", nearest_low_height = -99", 
-                               " WHERE id = ", id, sep = ""))
+                               " WHERE id = ", pribs$id[i], sep = ""))
       }
     }
   }
