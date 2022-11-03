@@ -24,7 +24,7 @@ install_pkg("lubridate")
 # Run code -------------------------------------------------------
 # Set initial working directory -------------------------------------------------------
 wd <- "//nmfs/akc-nmml/Polar_Imagery/Surveys_HS/Coastal/"
-year <- as.list(2021:2021)
+year <- as.list(2022:2022)
 
 # Create list of folders within directory for which images need to be processed -------
 dir <- as.character(list.dirs(paste(wd, "Originals/", year[1], sep = ""), full.names = TRUE, recursive = TRUE))
@@ -51,7 +51,7 @@ con <- RPostgreSQL::dbConnect(PostgreSQL(),
                               dbname = Sys.getenv("pep_db"), 
                               host = Sys.getenv("pep_ip"), 
                               user = Sys.getenv("pep_admin"), 
-                              rstudioapi::askForPassword(paste("Enter your DB password for user account: ", Sys.getenv("pep_admin"), sep = "")))
+                              password = Sys.getenv("admin_pw"))
 imported <- dbGetQuery(con, "SELECT source_file, image_name FROM surv_pv_cst.tbl_image_exif")
 imported$path <- dirname(imported$source_file)
 imported <- unique(imported$path)

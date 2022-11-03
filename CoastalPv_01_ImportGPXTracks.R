@@ -25,12 +25,12 @@ con <- RPostgreSQL::dbConnect(PostgreSQL(),
                               dbname = Sys.getenv("pep_db"), 
                               host = Sys.getenv("pep_ip"), 
                               user = Sys.getenv("pep_admin"), 
-                              rstudioapi::askForPassword(paste("Enter your DB password for user account: ", Sys.getenv("pep_admin"), sep = "")))
+                              password = Sys.getenv("admin_pw"))
 imported <- RPostgreSQL::dbGetQuery(con, "SELECT DISTINCT gpx_file FROM surv_pv_cst.geo_track_pts")
 imported$import <- 'Y'
 
 # Process GPX Files ---------------------------------------------------------------------
-trackfiles <- list.files(path = "//nmfs/akc-nmml/Polar_Imagery/Surveys_HS/Coastal/Originals/2021", pattern = "[^.]+?\\.(gpx)$", recursive = TRUE, full.names = TRUE)
+trackfiles <- list.files(path = "//nmfs/akc-nmml/Polar_Imagery/Surveys_HS/Coastal/Originals/2022", pattern = "[^.]+?\\.(gpx)$", recursive = TRUE, full.names = TRUE)
 x <- strsplit(trackfiles, "/")
 fnames <- sapply(x, function(x){x[length(x)]})
 trackfiles <- trackfiles[nchar(fnames) == 16 | nchar(fnames) == 17]
