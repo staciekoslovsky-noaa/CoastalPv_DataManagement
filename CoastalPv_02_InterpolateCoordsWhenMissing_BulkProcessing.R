@@ -23,10 +23,10 @@ con <- RPostgreSQL::dbConnect(PostgreSQL(),
                               dbname = Sys.getenv("pep_db"), 
                               host = Sys.getenv("pep_ip"), 
                               user = Sys.getenv("pep_user"), 
-                              rstudioapi::askForPassword(paste("Enter your DB password for user account: ", Sys.getenv("pep_user"), sep = "")))
+                              password = Sys.getenv("user_pw"))
 
 # Get data that need to be processed --------------------------------------------------
-track_to_interp <- RPostgreSQL::dbGetQuery(con, "SELECT DISTINCT photog_date_id FROM surv_pv_cst.proc_images_to_interp")
+track_to_interp <- RPostgreSQL::dbGetQuery(con, "SELECT DISTINCT photog_date_id FROM surv_pv_cst.proc_images_to_interp WHERE photog_date_id LIKE \'%2022%\' ")
 
 for (j in 1:nrow(track_to_interp)){
   image_id <- track_to_interp$photog_date_id[j]
@@ -52,7 +52,7 @@ for (j in 1:nrow(track_to_interp)){
   
   for (i in 1:nrow(img)){
     img$gps_dt[i] <- as.POSIXlt(ifelse(is.na(img$original_dt[i]), NA, 
-                                    ifelse(length(offset) == 0, img$original_dt[i], img$original_dt[i] + offset)), tz = "America/Vancouver", origin = '1970-01-01')
+                                    ifelse(length(offset) == 0 | is.na(offset) == TRUE, img$original_dt[i], img$original_dt[i] + offset)), tz = "America/Vancouver", origin = '1970-01-01')
     for (k in 1:nrow(pts)){
       pts$timing[k] <- ifelse(is.na(img$gps_dt[i]), "no_data", 
                            ifelse(img$gps_dt[i] == pts$gps_dt[k], "equal",
