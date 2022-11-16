@@ -26,7 +26,7 @@ con <- RPostgreSQL::dbConnect(PostgreSQL(),
                               password = Sys.getenv("user_pw"))
 
 # Get data that need to be processed --------------------------------------------------
-track_to_interp <- RPostgreSQL::dbGetQuery(con, "SELECT DISTINCT photog_date_id FROM surv_pv_cst.proc_images_to_interp WHERE photog_date_id LIKE \'%2022%\' ")
+track_to_interp <- RPostgreSQL::dbGetQuery(con, "SELECT DISTINCT photog_date_id FROM surv_pv_cst.proc_images_to_interp WHERE photog_date_id") # LIKE \'%2022%\' ")
 
 for (j in 1:nrow(track_to_interp)){
   image_id <- track_to_interp$photog_date_id[j]
