@@ -137,8 +137,12 @@ original_exif$FocusMode <- gsub(" ", "", original_exif$FocusMode)
 original_exif$GPSDateTime <- ifelse(nchar(original_exif$GPSDateTime) == 9, 
        paste(substr(original_exif$DateTimeOriginal, 1, 10), original_exif$GPSDateTime, sep = " "),
        original_exif$GPSDateTime)
-substr(original_exif$GPSDateTime, 5, 5) <- "-"
-substr(original_exif$GPSDateTime, 8, 8) <- "-"
+for (i in 1:nrow(original_exif)) {
+  if(!is.na(original_exif$GPSDateTime[i])) {
+    substr(original_exif$GPSDateTime[i], 5, 5) <- "-"
+    substr(original_exif$GPSDateTime[i], 8, 8) <- "-"
+    }
+  }
 original_exif$GPSDateTime <- ymd_hms(original_exif$GPSDateTime, tz = "UTC")
 original_exif$GPSSatellites <- as.numeric(original_exif$GPSSatellites)
 original_exif$GPSLatitude <- ifelse(is.na(original_exif$GPSLatitude), 0, original_exif$GPSLatitude)
