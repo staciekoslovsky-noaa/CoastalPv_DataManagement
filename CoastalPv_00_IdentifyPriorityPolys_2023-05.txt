@@ -1,0 +1,22 @@
+DELETE FROM surv_pv_cst.tbl_effort_priority 
+WHERE priority_process_date = '2023-04-27';
+
+DROP VIEW surv_pv_cst.geo_priorities_202305;
+
+INSERT INTO surv_pv_cst.tbl_effort_priority (polyid, priority_lku, priority_process_date)
+SELECT polyid, 'H', '2023-04-27'
+FROM surv_pv_cst.geo_polys
+WHERE behm_canal = 'Y';
+
+CREATE VIEW surv_pv_cst.geo_priorities_202305 AS
+ SELECT ROW_NUMBER() OVER( ORDER BY polyid) id, polyid,
+    geo_polys.stockid,
+    geo_polys.stockname,
+    geo_polys.station,
+	tbl_effort_priority.priority_lku AS priority,
+	a.abund_est_2018,
+    geo_polys.geom
+   FROM surv_pv_cst.tbl_effort_priority
+     JOIN surv_pv_cst.geo_polys USING (polyid)
+	 LEFT JOIN (SELECT polyid, abund_est AS abund_est_2018 FROM surv_pv_cst.res_abundance_201902 WHERE year = '2018') a USING (polyid)
+  WHERE tbl_effort_priority.priority_process_date = '2023-04-27'::date;
