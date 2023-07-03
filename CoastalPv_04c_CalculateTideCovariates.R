@@ -69,8 +69,8 @@ get_nearest_hi_lo <- function(tide_dt, station, tide_type) {
 con <- RPostgreSQL::dbConnect(PostgreSQL(), 
                               dbname = Sys.getenv("pep_db"), 
                               host = Sys.getenv("pep_ip"), 
-                              user = Sys.getenv("pep_user"), 
-                              password = Sys.getenv("user_pw"))
+                              user = Sys.getenv("pep_admin"), 
+                              password = Sys.getenv("admin_pw"))
 
 # Tide processing for ADFG data
 # dbSendQuery(con, paste("UPDATE surv_pv_cst.archive_poly_counts_adfg SET tide_height = NULL",

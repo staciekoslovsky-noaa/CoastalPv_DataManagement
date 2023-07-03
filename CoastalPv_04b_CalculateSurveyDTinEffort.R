@@ -81,8 +81,8 @@ install_pkg("RPostgreSQL")
 con <- RPostgreSQL::dbConnect(PostgreSQL(), 
                               dbname = Sys.getenv("pep_db"), 
                               host = Sys.getenv("pep_ip"), 
-                              user = Sys.getenv("pep_user"), 
-                              password = Sys.getenv("user_pw"))
+                              user = Sys.getenv("pep_admin"), 
+                              password = Sys.getenv("admin_pw"))
 
 # Assign missing date/times based on counted images ------------------------------------
 RPostgreSQL::dbSendQuery(con, "UPDATE surv_pv_cst.tbl_effort b
