@@ -1,0 +1,27 @@
+library(RPostgreSQL)
+library(tidyverse)
+
+con <- RPostgreSQL::dbConnect(PostgreSQL(), 
+                              dbname = Sys.getenv("pep_db"), 
+                              host = Sys.getenv("pep_ip"), 
+                              user = Sys.getenv("pep_admin"), 
+                              password = Sys.getenv("admin_pw"),)
+
+coastal <-dbGetQuery(con, "SELECT * FROM surv_pv_cst.summ_count_by_polyid_4analysis_coastal") %>%
+  mutate(survey_dt = as.POSIXct(survey_dt, tz = "America/Vancouver"),
+         nearest_high_dt = as.POSIXct(nearest_high_dt, tz = "America/Vancouver"),
+         nearest_low_dt = as.POSIXct(nearest_low_dt, tz = "America/Vancouver"))
+         
+attributes(coastal$survey_dt)$tzone <- "GMT"
+attributes(coastal$nearest_high_dt)$tzone <- "GMT"
+attributes(coastal$nearest_low_dt)$tzone <- "GMT"
+
+write.csv(coastal, file = "C:\\\\smk\\CoastalHarborSealCounts_Thru2022_20230908_smk.csv",row.names = FALSE)
+
+
+glacial <-dbGetQuery(con, "SELECT * FROM surv_pv_gla.summ_count_by_polyid_4analysis_glacial") %>%
+  mutate(survey_dt_gmt = as.POSIXct(survey_dt_gmt, tz = "America/Vancouver"))
+
+attributes(glacial$survey_dt_gmt)$tzone <- "GMT"
+
+write.csv(glacial, file = "C:\\\\smk\\GlacialHarborSealCounts_Thru2018_20230908_smk.csv",row.names = FALSE)
