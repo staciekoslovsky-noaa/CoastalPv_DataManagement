@@ -29,7 +29,8 @@ SELECT rs.polyid, rs.stockid, rs.stockname, rs.station, rs.geom, rs.abund_est, r
           over (Partition BY stockid
                 ORDER BY abund_est DESC) AS rank
         FROM counts_by_poly 
-        ) rs WHERE Rank > 40 AND last_surveyed <= '2012-12-31' AND polyid NOT IN (SELECT polyid from surv_pv_cst.geo_polys c, surv_pv_cst.geo_stock_aleutians_ew b WHERE ST_Intersects(b.geom, ST_Transform(c.geom, 3338)))
+        ) rs WHERE Rank > 55 --AND last_surveyed <= '2012-12-31' 
+		AND polyid NOT IN (SELECT polyid from surv_pv_cst.geo_polys c, surv_pv_cst.geo_stock_aleutians_ew b WHERE ST_Intersects(b.geom, ST_Transform(c.geom, 3338)))
         AND stockid = 1
 UNION
 SELECT rs.polyid, rs.stockid, rs.stockname, rs.station, rs.geom, rs.abund_est, rs.last_surveyed, rs.first_surveyed, CASE WHEN rank <= 8 THEN 'H' ELSE 'M' END AS priority
@@ -53,8 +54,18 @@ SELECT rs.polyid, rs.stockid, rs.stockname, rs.station, rs.geom, rs.abund_est, r
           over (Partition BY stockid
                 ORDER BY abund_est DESC) AS rank
         FROM counts_by_poly 
-        ) rs WHERE Rank > 40 AND last_surveyed <= '2012-12-31' AND polyid IN (SELECT polyid from surv_pv_cst.geo_polys c, surv_pv_cst.geo_stock_aleutians_ew b WHERE ST_Intersects(b.geom, ST_Transform(c.geom, 3338)))
+        ) rs WHERE Rank > 55 --AND last_surveyed <= '2012-12-31' 
+		AND polyid IN (SELECT polyid from surv_pv_cst.geo_polys c, surv_pv_cst.geo_stock_aleutians_ew b WHERE ST_Intersects(b.geom, ST_Transform(c.geom, 3338)))
         AND stockid = 1
+UNION
+SELECT rs.polyid, rs.stockid, rs.stockname, rs.station, rs.geom, rs.abund_est, rs.last_surveyed, rs.first_surveyed, CASE WHEN rank <= 8 THEN 'H' ELSE 'M' END AS priority
+    FROM (
+        SELECT polyid, stockid, stockname, station, c.geom, abund_est, last_surveyed, first_surveyed, Rank() 
+          over (Partition BY stockid
+                ORDER BY abund_est DESC) AS rank
+        FROM counts_by_poly c WHERE abund_est IS NOT NULL
+        ) rs WHERE Rank <= 20
+        AND stockid = 7
 ORDER BY polyid;
         
 INSERT INTO surv_pv_cst.tbl_effort_priority (polyid, priority_lku, priority_process_date)
