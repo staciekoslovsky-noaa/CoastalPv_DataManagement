@@ -1,6 +1,6 @@
 # Coastal Harbor Seal Survey Data Management
 
-Code numbered 0+ are intended to be run sequentially as the data are available for processing. Code numbered 99 are stored for longetivity, but are intended to only be run once to address a specific issue or run as needed, depending on the intent of the code.
+This repository stores the code associated with managing coastal harbor seal survey data. Code numbered 0+ are intended to be run sequentially as the data are available for processing. Code numbered 99 are stored for longetivity, but are intended to only be run once to address a specific issue or run as needed, depending on the intent of the code.
 
 The data management processing code is as follows:
 * **CoastalPv_00_IdentifyPriorityPolys_YYYY-MM.txt** - code to identify the priority polygons for particular survey efforts (which are denoted by the YYYY-MM in the file name) and create views in the DB of the selected polygons; this code is to be run in PGAdmin
@@ -13,7 +13,6 @@ The data management processing code is as follows:
 * **CoastalPv_03c_CalculateTideCovariates.R** - based on the survey date/time generated from the previous step, code to extract high and low tide information for the surveyed polygons
 * **CoastalPv_04_QAQC0Counts.R** - code for quality checking 0 counts in the database; this should be run after the counts for a particular year have been completed and before data are provided to statisticians for analysis
 * **CoastalPv_05_ExportHarborSealCountsInclGlacial_4Analysis.R** - code for exporting data to CSV format for abundance analyses; exports both coastal and glacial data from the DB
-
 
 Other code in the repository includes:
 * Code to create a new haulout layer (if/when changes have been made):
