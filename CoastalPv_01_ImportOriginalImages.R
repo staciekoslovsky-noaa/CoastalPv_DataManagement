@@ -1,5 +1,5 @@
 # Coastal Pv Surveys: Create spatial dataset of images taken during survey
-# S. Hardy, 12JUN2017
+# S. Koslovsky, 12JUN2017
 
 # Create functions -----------------------------------------------
 # Function to install packages needed
@@ -24,7 +24,7 @@ install_pkg("lubridate")
 # Run code -------------------------------------------------------
 # Set initial working directory -------------------------------------------------------
 wd <- "//nmfs/akc-nmml/Polar_Imagery/Surveys_HS/Coastal/"
-year <- as.list(2022:2022)
+year <- as.list(2023:2023)
 
 # Create list of folders within directory for which images need to be processed -------
 dir <- as.character(list.dirs(paste(wd, "Originals/", year[1], sep = ""), full.names = TRUE, recursive = TRUE))
