@@ -1,5 +1,5 @@
 # Coastal Pv Surveys: Interpolate coordinates for images when missing (bulk)
-# S. Hardy, 04MAY017
+# S. Koslovsky, 04MAY2017
 
 # Create functions -----------------------------------------------
 # Function to install packages needed
@@ -22,11 +22,12 @@ install_pkg("lubridate")
 con <- RPostgreSQL::dbConnect(PostgreSQL(), 
                               dbname = Sys.getenv("pep_db"), 
                               host = Sys.getenv("pep_ip"), 
-                              user = Sys.getenv("pep_user"), 
-                              password = Sys.getenv("user_pw"))
+                              user = Sys.getenv("pep_admin"), 
+                              password = Sys.getenv("admin_pw"))
 
 # Get data that need to be processed --------------------------------------------------
-track_to_interp <- RPostgreSQL::dbGetQuery(con, "SELECT DISTINCT photog_date_id FROM surv_pv_cst.proc_images_to_interp WHERE photog_date_id") # LIKE \'%2022%\' ")
+track_to_interp <- RPostgreSQL::dbGetQuery(con, "SELECT DISTINCT photog_date_id FROM surv_pv_cst.proc_images_to_interp
+                                           WHERE photog_date_id <> \'HLZ_20190909\'") # WHERE photog_date_id" LIKE \'%2022%\' ")
 
 for (j in 1:nrow(track_to_interp)){
   image_id <- track_to_interp$photog_date_id[j]
@@ -45,6 +46,19 @@ for (j in 1:nrow(track_to_interp)){
   pts <- dbGetQuery(con, paste("SELECT gps_dt, latitude, longitude, altitude FROM surv_pv_cst.geo_track_pts WHERE trackid = \'", track_id, "\' ORDER BY id", sep = ""))
   pts$gps_dt <- lubridate::ymd_hms(pts$gps_dt, tz = "America/Vancouver")
   
+  if (substr(track_id, nchar(track_id), nchar(track_id)) == 'X') {
+    for (i in 1:nrow(img)) {
+      img$gps_dt <- img$original_dt
+      
+      RPostgreSQL::dbSendQuery(con, paste("UPDATE surv_pv_cst.tbl_image_exif SET latitude = 2",
+                                          ", longitude = 2", 
+                                          ", altitude = -99", 
+                                          ", gps_dt = \'", format(lubridate::ymd_hms(img$gps_dt[i], tz = "America/Vancouver"), tz = "UTC"),
+                                          "\', interpolated_lku = \'Y\' WHERE id = ", img$id[i], sep = ""))
+    }
+    next()
+  }
+  
   if (nrow(pts) == 0) {
     stop("no gps coordinates available for matching...check for another GPS track to use!")
   }
@@ -59,6 +73,7 @@ for (j in 1:nrow(track_to_interp)){
                                   ifelse(img$gps_dt[i] > pts$gps_dt[k], "before", "after")))
     }
     rm(k)
+    
     if (nrow(subset(pts, timing == "no_data")) == nrow(pts)) {
       RPostgreSQL::dbSendQuery(con, paste("UPDATE surv_pv_cst.tbl_image_exif SET latitude = 2",
                              ", longitude = 2", 
