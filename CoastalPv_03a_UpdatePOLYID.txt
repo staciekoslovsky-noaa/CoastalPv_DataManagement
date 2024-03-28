@@ -1,6 +1,6 @@
 UPDATE surv_pv_cst.tbl_image_exif
 SET polyid = 'XXX'
-WHERE use_for_count_lku = 'N';
+WHERE use_for_count_lku = 'N' OR use_for_count_lku = 'O' OR use_for_count_lku = 'S';
 
 UPDATE surv_pv_cst.tbl_image_exif
 SET polyid = NULL
