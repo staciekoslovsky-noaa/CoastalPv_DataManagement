@@ -3,9 +3,9 @@ con <- RPostgreSQL::dbConnect(PostgreSQL(),
                               dbname = Sys.getenv("pep_db"), 
                               host = Sys.getenv("pep_ip"), 
                               user = Sys.getenv("pep_admin"), 
-                              rstudioapi::askForPassword(paste("Enter your DB password for user account: ", Sys.getenv("pep_admin"), sep = "")))
+                              password =  Sys.getenv("admin_pw"))
 
-data <-dbGetQuery(con, "select * from surv_pv_cst.summ_count_by_polyid_4analysis")
+data <-dbGetQuery(con, "select * from surv_pv_cst.summ_count_by_polyid_4analysis_coastal")
 
 data$non_pup[is.na(data$non_pup)] <- 0
 data$pup[is.na(data$pup)] <- 0
