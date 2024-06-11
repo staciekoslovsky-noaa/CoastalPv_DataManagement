@@ -7,6 +7,7 @@ con <- RPostgreSQL::dbConnect(PostgreSQL(),
                               user = Sys.getenv("pep_admin"), 
                               password = Sys.getenv("admin_pw"),)
 
+# Get coastal data
 coastal <-dbGetQuery(con, "SELECT * FROM surv_pv_cst.summ_count_by_polyid_4analysis_coastal") %>%
   mutate(survey_dt = as.POSIXct(survey_dt, tz = "America/Vancouver", format = '%y-%m-%d %h:%m:%s'),
          nearest_high_dt = as.POSIXct(nearest_high_dt, tz = "America/Vancouver", format = '%y-%m-%d %h:%m:%s'),
@@ -16,14 +17,17 @@ attributes(coastal$survey_dt)$tzone <- "GMT"
 attributes(coastal$nearest_high_dt)$tzone <- "GMT"
 attributes(coastal$nearest_low_dt)$tzone <- "GMT"
 
+write.csv(coastal, file = "C:\\\\smk\\CoastalHarborSealCounts_Thru2023_20240502_smk.csv", row.names = FALSE)
 
 
-write.csv(coastal, file = "C:\\\\smk\\CoastalHarborSealCounts_Thru2022_20240329_smk.csv", row.names = FALSE)
-
-
+# Get glacial data
 glacial <- dbGetQuery(con, "SELECT * FROM surv_pv_gla.summ_count_by_polyid_4analysis_glacial") %>%
   mutate(survey_dt_gmt = as.POSIXct(survey_dt_gmt, tz = "America/Vancouver"))
 
 attributes(glacial$survey_dt_gmt)$tzone <- "GMT"
 
 write.csv(glacial, file = "C:\\\\smk\\GlacialHarborSealCounts_Thru2018_20230908_smk.csv",row.names = FALSE)
+
+
+# Disconnect from DB
+RPostgreSQL::dbDisconnect(con)
