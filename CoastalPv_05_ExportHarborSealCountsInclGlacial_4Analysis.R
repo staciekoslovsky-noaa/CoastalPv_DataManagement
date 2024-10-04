@@ -5,7 +5,7 @@ con <- RPostgreSQL::dbConnect(PostgreSQL(),
                               dbname = Sys.getenv("pep_db"), 
                               host = Sys.getenv("pep_ip"), 
                               user = Sys.getenv("pep_admin"), 
-                              password = Sys.getenv("admin_pw"),)
+                              password = Sys.getenv("admin_pw"))
 
 # Get coastal data
 coastal <-dbGetQuery(con, "SELECT * FROM surv_pv_cst.summ_count_by_polyid_4analysis_coastal") %>%
@@ -26,7 +26,7 @@ glacial <- dbGetQuery(con, "SELECT * FROM surv_pv_gla.summ_count_by_polyid_4anal
 
 attributes(glacial$survey_dt_gmt)$tzone <- "GMT"
 
-write.csv(glacial, file = "C:\\\\smk\\GlacialHarborSealCounts_Thru2018_20230908_smk.csv",row.names = FALSE)
+write.csv(glacial, file = "C:\\\\smk\\GlacialHarborSealCounts_Thru2018_20240802_smk.csv",row.names = FALSE)
 
 
 # Disconnect from DB

@@ -24,7 +24,7 @@ install_pkg("lubridate")
 # Run code -------------------------------------------------------
 # Set initial working directory -------------------------------------------------------
 wd <- "//nmfs/akc-nmml/Polar_Imagery/Surveys_HS/Coastal/"
-year <- as.list(2023:2023)
+year <- as.list(2024:2024)
 
 # Create list of folders within directory for which images need to be processed -------
 dir <- as.character(list.dirs(paste(wd, "Originals/", year[1], sep = ""), full.names = TRUE, recursive = TRUE))

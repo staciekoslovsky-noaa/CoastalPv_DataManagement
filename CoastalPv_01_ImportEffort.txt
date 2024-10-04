@@ -6,8 +6,8 @@ SET latitude = g.latitude,
 longitude = g.longitude
 FROM surv_pv_cst.geo_polys_midpt g
 WHERE e.polyid = g.polyid
-AND trackid like '%2023%';
+AND trackid like '%2024%';
 
 UPDATE surv_pv_cst.tbl_effort 
 SET geom = ST_SetSRID(ST_MakePoint(longitude, latitude), 4326) 
-WHERE trackid like '%2023%';
+WHERE trackid like '%2024%';

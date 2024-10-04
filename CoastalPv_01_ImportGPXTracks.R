@@ -30,7 +30,7 @@ imported <- RPostgreSQL::dbGetQuery(con, "SELECT DISTINCT gpx_file FROM surv_pv_
 imported$import <- 'Y'
 
 # Process GPX Files ---------------------------------------------------------------------
-trackfiles <- list.files(path = "//nmfs/akc-nmml/Polar_Imagery/Surveys_HS/Coastal/Originals/2023", pattern = "[^.]+?\\.(gpx)$", recursive = TRUE, full.names = TRUE)
+trackfiles <- list.files(path = "//nmfs/akc-nmml/Polar_Imagery/Surveys_HS/Coastal/Originals/2024", pattern = "[^.]+?\\.(gpx)$", recursive = TRUE, full.names = TRUE)
 x <- strsplit(trackfiles, "/")
 fnames <- sapply(x, function(x){x[length(x)]})
 trackfiles <- trackfiles[nchar(fnames) == 16 | nchar(fnames) == 17]
