@@ -1,5 +1,5 @@
 # Coastal Pv Surveys: Process effort date/time and tidal covariates
-# S. Hardy, 06MAR2018
+# S. Koslovsky, 06MAR2018
 
 # Create functions -----------------------------------------------
 # Function to install packages needed
@@ -347,6 +347,63 @@ if (nrow(pribs) > 0) {
     }
   }
 }
+
+# Tide processing for NPS data
+# dbSendQuery(con,  paste("UPDATE surv_pv_cst.archive_poly_counts_nps SET tide_height = NULL",
+#                        ", nearest_high_dt = NULL",
+#                        ", nearest_high_height = NULL",
+#                        ", nearest_low_dt = NULL",
+#                        ", nearest_low_height = NULL", sep = ""))
+nps <- dbGetQuery(con, "SELECT l.id, survey_dt, station 
+                   FROM surv_pv_cst.archive_poly_counts_nps l
+                   INNER JOIN surv_pv_cst.geo_polys
+                   USING (polyid) 
+                   WHERE tide_height IS NULL")
+if (nrow(nps) > 0) {
+  nps$tide_dt <- as.POSIXct(nps$survey_dt, tz = "America/Vancouver")
+  attributes(nps$tide_dt)$tzone <- "GMT"
+  
+  for (i in 1:nrow(nps)){
+    if (is.na(nps$survey_dt[i])) {
+      dbSendQuery(con, paste("UPDATE surv_pv_cst.archive_poly_counts_nps SET tide_height = -99",
+                             ", nearest_high_height = -99", 
+                             ", nearest_low_height = -99", 
+                             " WHERE id = ", pribs$id[i], sep = ""))
+    } else {
+      # Set processing variables
+      station <- nps$station[i]
+      tide_dt <- nps$tide_dt[i]
+      id <- nps$id[i]
+      
+      # Extract tidal data
+      height <- get_tide_height(tide_dt, station)
+      high <- get_nearest_hi_lo(tide_dt, station, "High")
+      low <- get_nearest_hi_lo(tide_dt, station, "Low")
+      
+      high_height <- high[[1]][1]
+      high_dt <- high[[2]][1]
+      
+      low_height <- low[[1]][1]
+      low_dt <- low[[2]][1]
+      
+      # Update DB
+      if (is.na(height) == FALSE & is.na(high_height) == FALSE & is.na(high_dt) == FALSE & is.na(low_height) == FALSE & is.na(low_dt) == FALSE) {
+        dbSendQuery(con, paste("UPDATE surv_pv_cst.archive_poly_counts_nps SET tide_height = ", height,
+                               ", nearest_high_dt = \'", high_dt,
+                               "\', nearest_high_height = ", high_height,
+                               ", nearest_low_dt = \'", low_dt,
+                               "\', nearest_low_height = ", low_height,
+                               " WHERE id = ", nps$id[i], sep = ""))
+      } else {
+        dbSendQuery(con, paste("UPDATE surv_pv_cst.archive_poly_counts_nps SET tide_height = -99",
+                               ", nearest_high_height = -99", 
+                               ", nearest_low_height = -99", 
+                               " WHERE id = ", nps$id[i], sep = ""))
+      }
+    }
+  }
+}
+
 
 RPostgreSQL::dbDisconnect(con)
 rm(con, station, tide_dt, id, height, high, low, high_height, high_dt, low_height, low_dt, i)
