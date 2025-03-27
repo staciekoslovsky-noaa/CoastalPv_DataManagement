@@ -17,7 +17,7 @@ attributes(coastal$survey_dt)$tzone <- "GMT"
 attributes(coastal$nearest_high_dt)$tzone <- "GMT"
 attributes(coastal$nearest_low_dt)$tzone <- "GMT"
 
-write.csv(coastal, file = "C:\\\\smk\\CoastalHarborSealCounts.csv", row.names = FALSE)
+write.csv(coastal, file = "C:\\\\smk\\CoastalHarborSealCounts_20250327_IncludingNPS.csv", row.names = FALSE)
 
 
 # Get glacial data
@@ -26,7 +26,7 @@ glacial <- dbGetQuery(con, "SELECT * FROM surv_pv_gla.summ_count_by_polyid_4anal
 
 attributes(glacial$survey_dt_gmt)$tzone <- "GMT"
 
-write.csv(glacial, file = "C:\\\\smk\\GlacialHarborSealCounts.csv",row.names = FALSE)
+write.csv(glacial, file = "C:\\\\smk\\GlacialHarborSealCounts_20250327_IncludingNPS.csv",row.names = FALSE)
 
 
 # Disconnect from DB
