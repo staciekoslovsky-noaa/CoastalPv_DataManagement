@@ -3,6 +3,7 @@
 
 # Set variables --------------------------------------------------
 import_file <- "C:/Users/Stacie.Hardy/Work/SMK/Projects/AS_HarborSeal_Coastal/Data/JNW_HarborSealCounts_2018-2023/NPS_Womble_HSeals_2018-2023_JNW_20250318_final.csv"
+export_file <- "C:/Users/Stacie.Hardy/Work/SMK/Projects/AS_HarborSeal_Coastal/Data/JNW_HarborSealCounts_2018-2023/NPS_Womble_HSeals_2018-2023_JNW_20250318_final_missingExpectedSites_20250424.csv"
 
 # Create functions -----------------------------------------------
 # Function to install packages needed
@@ -56,6 +57,5 @@ missing_expected <- tracks %>%
   left_join(data %>% select(trackid, nps_site_name, survey_dt), by = c("trackid", "nps_site_name")) %>%
   filter(is.na(survey_dt))
 
-
-
-
+# Export data
+write.csv(missing_expected, export_file, quote = FALSE, row.names = FALSE)
