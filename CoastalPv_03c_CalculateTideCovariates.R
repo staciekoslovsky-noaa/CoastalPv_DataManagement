@@ -404,6 +404,62 @@ if (nrow(nps) > 0) {
   }
 }
 
+# Tide processing for coastal counts from glacial
+# dbSendQuery(con,  paste("UPDATE surv_pv_cst.archive_poly_counts_from_glacial SET tide_height = NULL",
+#                        ", nearest_high_dt = NULL",
+#                        ", nearest_high_height = NULL",
+#                        ", nearest_low_dt = NULL",
+#                        ", nearest_low_height = NULL", sep = ""))
+glacial <- dbGetQuery(con, "SELECT l.id, survey_dt, station 
+                   FROM surv_pv_cst.archive_poly_counts_from_glacial l
+                   INNER JOIN surv_pv_cst.geo_polys
+                   USING (polyid) 
+                   WHERE tide_height IS NULL")
+if (nrow(glacial) > 0) {
+  glacial$tide_dt <- as.POSIXct(glacial$survey_dt, tz = "America/Vancouver")
+  attributes(glacial$tide_dt)$tzone <- "GMT"
+  
+  for (i in 1:nrow(glacial)){
+    if (is.na(glacial$survey_dt[i])) {
+      dbSendQuery(con, paste("UPDATE surv_pv_cst.archive_poly_counts_from_glacial SET tide_height = -99",
+                             ", nearest_high_height = -99", 
+                             ", nearest_low_height = -99", 
+                             " WHERE id = ", glacial$id[i], sep = ""))
+    } else {
+      # Set processing variables
+      station <- glacial$station[i]
+      tide_dt <- glacial$tide_dt[i]
+      id <- glacial$id[i]
+      
+      # Extract tidal data
+      height <- get_tide_height(tide_dt, station)
+      high <- get_nearest_hi_lo(tide_dt, station, "High")
+      low <- get_nearest_hi_lo(tide_dt, station, "Low")
+      
+      high_height <- high[[1]][1]
+      high_dt <- high[[2]][1]
+      
+      low_height <- low[[1]][1]
+      low_dt <- low[[2]][1]
+      
+      # Update DB
+      if (is.na(height) == FALSE & is.na(high_height) == FALSE & is.na(high_dt) == FALSE & is.na(low_height) == FALSE & is.na(low_dt) == FALSE) {
+        dbSendQuery(con, paste("UPDATE surv_pv_cst.archive_poly_counts_from_glacial SET tide_height = ", height,
+                               ", nearest_high_dt = \'", high_dt,
+                               "\', nearest_high_height = ", high_height,
+                               ", nearest_low_dt = \'", low_dt,
+                               "\', nearest_low_height = ", low_height,
+                               " WHERE id = ", glacial$id[i], sep = ""))
+      } else {
+        dbSendQuery(con, paste("UPDATE surv_pv_cst.archive_poly_counts_from_glacial SET tide_height = -99",
+                               ", nearest_high_height = -99", 
+                               ", nearest_low_height = -99", 
+                               " WHERE id = ", glacial$id[i], sep = ""))
+      }
+    }
+  }
+}
+
 
 RPostgreSQL::dbDisconnect(con)
 rm(con, station, tide_dt, id, height, high, low, high_height, high_dt, low_height, low_dt, i)
