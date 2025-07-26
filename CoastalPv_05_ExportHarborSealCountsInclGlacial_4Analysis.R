@@ -26,7 +26,7 @@ glacial <- dbGetQuery(con, "SELECT * FROM surv_pv_gla.summ_count_by_polyid_4anal
 
 attributes(glacial$survey_dt_gmt)$tzone <- "GMT"
 
-write.csv(glacial, file = "C:\\\\smk\\GlacialHarborSealCounts_20250327_IncludingNPS.csv",row.names = FALSE)
+write.csv(glacial, file = "C:\\\\smk\\GlacialHarborSealCounts_20250711_addingCOCOA_2020_2021.csv",row.names = FALSE)
 
 
 # Disconnect from DB
