@@ -24,7 +24,7 @@ install_pkg("lubridate")
 # Run code -------------------------------------------------------
 # Set initial working directory -------------------------------------------------------
 wd <- "//nmfs/akc-nmml/Polar_Imagery/Surveys_HS/Coastal/"
-year <- as.list(2024:2024)
+year <- as.list(2020:2020)
 
 # Create list of folders within directory for which images need to be processed -------
 dir <- as.character(list.dirs(paste(wd, "Originals/", year[1], sep = ""), full.names = TRUE, recursive = TRUE))
@@ -156,10 +156,10 @@ for (i in c(1:nrow(original))){
   original_exif$GPSLongitude <- ifelse(is.na(original_exif$GPSLongitude), 0, original_exif$GPSLongitude)
   original_exif$GPSLongitude <- ifelse(!is.na(original_exif$GPSSatellites) & original_exif$GPSSatellites == 2, 0, original_exif$GPSLongitude)
   original_exif$interpolated_lku <- 
-    "X" # use when wanting to interpolate all locations (how data were handled in 2022 and 2023)
-  #ifelse(is.na(original_exif$GPSDateTime), "X", # use when wanting to allow GPS locations to be imported
-  #ifelse(original_exif$GPSLatitude == 0, "X",
-  #ifelse(original_exif$GPSLongitude == 0, "X", "N")))
+    "X" # use when wanting to interpolate all locations (how data were handled in 2020 (bad timestamps, 2022 and 2023)
+    # ifelse(is.na(original_exif$GPSDateTime), "X", # use when wanting to allow GPS locations to be imported
+    # ifelse(original_exif$GPSLatitude == 0, "X",
+    # ifelse(original_exif$GPSLongitude == 0, "X", "N")))
   original_exif$use_for_count_lku <- "X"
   original_exif$geom <- "0101000020E610000000000000000000000000000000000000"
   original_exif$polyid <- ""
