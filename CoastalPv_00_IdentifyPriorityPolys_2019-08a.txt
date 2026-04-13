@@ -19,7 +19,7 @@ SELECT rs.polyid, rs.stockid, rs.stockname, rs.station, rs.geom, rs.abund_est, r
         SELECT polyid, stockid, stockname, station, c.geom, abund_est, last_surveyed, first_surveyed, Rank() 
           over (Partition BY stockid
                 ORDER BY abund_est DESC) AS rank
-        FROM counts_by_poly c WHERE abund_est IS NOT NULL AND polyid NOT IN (SELECT polyid from surv_pv_cst.geo_polys c, surv_pv_cst.geo_stock_aleutians_ew b WHERE ST_Intersects(b.geom, ST_Transform(c.geom, 3338)))
+        FROM counts_by_poly c WHERE abund_est IS NOT NULL
         ) rs WHERE Rank <= 20
         AND stockid = 4
 UNION 
@@ -28,7 +28,7 @@ SELECT rs.polyid, rs.stockid, rs.stockname, rs.station, rs.geom, rs.abund_est, r
         SELECT polyid, stockid, stockname, station, c.geom, abund_est, last_surveyed, first_surveyed, Rank() 
           over (Partition BY stockid
                 ORDER BY abund_est DESC) AS rank
-        FROM counts_by_poly c WHERE abund_est IS NOT NULL AND polyid NOT IN (SELECT polyid from surv_pv_cst.geo_polys c, surv_pv_cst.geo_stock_aleutians_ew b WHERE ST_Intersects(b.geom, ST_Transform(c.geom, 3338)))
+        FROM counts_by_poly c WHERE abund_est IS NOT NULL
         ) rs WHERE Rank <= 20
         AND stockid = 5
 UNION
@@ -37,7 +37,7 @@ SELECT rs.polyid, rs.stockid, rs.stockname, rs.station, rs.geom, rs.abund_est, r
         SELECT polyid, stockid, stockname, station, c.geom, abund_est, last_surveyed, first_surveyed, Rank() 
           over (Partition BY stockid
                 ORDER BY abund_est DESC) AS rank
-        FROM counts_by_poly c WHERE abund_est IS NOT NULL AND polyid NOT IN (SELECT polyid from surv_pv_cst.geo_polys c, surv_pv_cst.geo_stock_aleutians_ew b WHERE ST_Intersects(b.geom, ST_Transform(c.geom, 3338)))
+        FROM counts_by_poly c WHERE abund_est IS NOT NULL
         ) rs WHERE Rank <= 20
         AND stockid = 7
 ORDER BY polyid;

@@ -36,15 +36,6 @@ SELECT polyid, stockid, stockname, station, geom, -99, '1111-01-01 01:11:11', '1
 	FROM surv_pv_cst.geo_polys
 	where polyid not in (select polyid from counts_by_poly)
 	and (stockid = 6 OR stockid = 8 OR stockid = 9 OR stockid = 10 OR stockid = 11 OR stockid = 12)
-UNION
-SELECT rs.polyid, rs.stockid, rs.stockname, rs.station, rs.geom, rs.abund_est, rs.last_surveyed, rs.first_surveyed, 'L' AS priority
-    FROM (
-        SELECT polyid, stockid, stockname, station, geom, abund_est, last_surveyed, first_surveyed, Rank() 
-          over (Partition BY stockid
-                ORDER BY abund_est DESC) AS rank
-        FROM counts_by_poly 
-        ) rs WHERE Rank > 40 AND last_surveyed <= '2011-12-31' 
-        AND (stockid = 6 OR stockid = 8 OR stockid = 9 OR stockid = 10 OR stockid = 11 OR stockid = 12)
 ORDER BY polyid;
         
 INSERT INTO surv_pv_cst.tbl_effort_priority (polyid, priority_lku, priority_process_date)

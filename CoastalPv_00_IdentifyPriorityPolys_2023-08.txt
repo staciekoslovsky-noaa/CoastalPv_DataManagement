@@ -29,7 +29,7 @@ SELECT rs.polyid, rs.stockid, rs.stockname, rs.station, rs.geom, rs.abund_est, r
           over (Partition BY stockid
                 ORDER BY abund_est DESC) AS rank
         FROM counts_by_poly 
-        ) rs WHERE Rank > 55 --AND last_surveyed <= '2012-12-31' 
+        ) rs WHERE Rank > 55 
 		AND polyid NOT IN (SELECT polyid from surv_pv_cst.geo_polys c, surv_pv_cst.geo_stock_aleutians_ew b WHERE ST_Intersects(b.geom, ST_Transform(c.geom, 3338)))
         AND stockid = 1
 UNION
@@ -46,7 +46,6 @@ SELECT polyid, stockid, stockname, station, geom, -99, '1111-01-01 01:11:11', '1
 FROM surv_pv_cst.geo_polys
 where polyid not in (select polyid from counts_by_poly)
 and stockid = 1
---AND polyid IN (SELECT polyid from surv_pv_cst.geo_polys c, surv_pv_cst.geo_stock_aleutians_ew b WHERE ST_Intersects(b.geom, ST_Transform(c.geom, 3338)))
 UNION
 SELECT rs.polyid, rs.stockid, rs.stockname, rs.station, rs.geom, rs.abund_est, rs.last_surveyed, rs.first_surveyed, 'L' AS priority
     FROM (
@@ -54,7 +53,7 @@ SELECT rs.polyid, rs.stockid, rs.stockname, rs.station, rs.geom, rs.abund_est, r
           over (Partition BY stockid
                 ORDER BY abund_est DESC) AS rank
         FROM counts_by_poly 
-        ) rs WHERE Rank > 55 --AND last_surveyed <= '2012-12-31' 
+        ) rs WHERE Rank > 55 
 		AND polyid IN (SELECT polyid from surv_pv_cst.geo_polys c, surv_pv_cst.geo_stock_aleutians_ew b WHERE ST_Intersects(b.geom, ST_Transform(c.geom, 3338)))
         AND stockid = 1
 UNION
