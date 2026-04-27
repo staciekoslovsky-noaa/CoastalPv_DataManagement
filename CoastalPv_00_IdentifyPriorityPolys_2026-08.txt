@@ -6,13 +6,13 @@ DROP VIEW IF EXISTS surv_pv_cst.geo_priorities_202608;
 --Process stock 4-7 for prioritization
 CREATE VIEW surv_pv_cst.geo_priorities_202608 AS
 SELECT *, 
-	--assign top 2/3 of 70% of total estimated abundance as H
-	--assign bottom 1/3 of 70% of total estimated abundance as M
-	--assign polyids in bottom 30% of total estimate abundance that haven't been surveyed within the last 10 years as L
+	--assign top half of 70% of total estimated abundance as H
+	--assign bottom half of 70% of total estimated abundance as M
+	--assign polyids in bottom 30% of total estimate abundance that haven't been surveyed within the last 10 years as L and have an abundance estimate
 	--excludes glacial sites
-	CASE WHEN rank <= 0.66 * total_rank AND priority_type = 'Top' THEN 'H' 
-		WHEN rank > 0.66 * total_rank AND priority_type = 'Top' THEN 'M' 
-		WHEN priority_type = 'Bottom' AND last_surveyed <= '2016-12-31' THEN 'L'
+	CASE WHEN rank <= 0.5 * total_rank AND priority_type = 'Top' THEN 'H' 
+		WHEN rank > 0.5 * total_rank AND priority_type = 'Top' THEN 'M' 
+		WHEN priority_type = 'Bottom' AND last_surveyed <= '2016-12-31' AND abund_est <> 0 THEN 'L'
 		ELSE 'not_selected' END AS priority
 FROM(
 	SELECT stockid, stockname, polyid, last_surveyed, abund_est, running_abund, total_abund, rank, 
@@ -42,12 +42,13 @@ FROM(
 ) f
 UNION
 SELECT *, 
-	--assign top 2/3 of 70% of total estimated abundance as H
-	--assign bottom 1/3 of 70% of total estimated abundance as M
-	--assign polyids in bottom 30% of total estimate abundance that haven't been surveyed within the last 10 years as L
-	CASE WHEN rank <= 0.66 * total_rank AND priority_type = 'Top' THEN 'H' 
-		WHEN rank > 0.66 * total_rank AND priority_type = 'Top' THEN 'M' 
-		WHEN priority_type = 'Bottom' AND last_surveyed <= '2016-12-31' THEN 'L'
+	--assign top half of 70% of total estimated abundance as H
+	--assign bottom half of 70% of total estimated abundance as M
+	--assign polyids in bottom 30% of total estimate abundance that haven't been surveyed within the last 10 years as L and have an abundance estimate
+	--excludes glacial sites
+	CASE WHEN rank <= 0.5 * total_rank AND priority_type = 'Top' THEN 'H' 
+		WHEN rank > 0.5 * total_rank AND priority_type = 'Top' THEN 'M' 
+		WHEN priority_type = 'Bottom' AND last_surveyed <= '2016-12-31' AND abund_est <> 0 THEN 'L'
 		ELSE 'not_selected' END AS priority
 FROM(
 	SELECT stockid, stockname, polyid, last_surveyed, abund_est, running_abund, total_abund, rank, 
@@ -77,12 +78,13 @@ FROM(
 ) f
 UNION
 SELECT *, 
-	--assign top 2/3 of 70% of total estimated abundance as H
-	--assign bottom 1/3 of 70% of total estimated abundance as M
-	--assign polyids in bottom 30% of total estimate abundance that haven't been surveyed within the last 10 years as L
-	CASE WHEN rank <= 0.66 * total_rank AND priority_type = 'Top' THEN 'H' 
-		WHEN rank > 0.66 * total_rank AND priority_type = 'Top' THEN 'M' 
-		WHEN priority_type = 'Bottom' AND last_surveyed <= '2016-12-31' THEN 'L'
+	--assign top half of 70% of total estimated abundance as H
+	--assign bottom half of 70% of total estimated abundance as M
+	--assign polyids in bottom 30% of total estimate abundance that haven't been surveyed within the last 10 years as L and have an abundance estimate
+	--excludes glacial sites
+	CASE WHEN rank <= 0.5 * total_rank AND priority_type = 'Top' THEN 'H' 
+		WHEN rank > 0.5 * total_rank AND priority_type = 'Top' THEN 'M' 
+		WHEN priority_type = 'Bottom' AND last_surveyed <= '2016-12-31' AND abund_est <> 0 THEN 'L'
 		ELSE 'not_selected' END AS priority
 FROM(
 	SELECT stockid, stockname, polyid, last_surveyed, abund_est, running_abund, total_abund, rank, 
@@ -112,12 +114,13 @@ FROM(
 ) f
 UNION
 SELECT *, 
-	--assign top 2/3 of 70% of total estimated abundance as H
-	--assign bottom 1/3 of 70% of total estimated abundance as M
-	--assign polyids in bottom 30% of total estimate abundance that haven't been surveyed within the last 10 years as L
-	CASE WHEN rank <= 0.66 * total_rank AND priority_type = 'Top' THEN 'H' 
-		WHEN rank > 0.66 * total_rank AND priority_type = 'Top' THEN 'M' 
-		WHEN priority_type = 'Bottom' AND last_surveyed <= '2016-12-31' THEN 'L'
+	--assign top half of 70% of total estimated abundance as H
+	--assign bottom half of 70% of total estimated abundance as M
+	--assign polyids in bottom 30% of total estimate abundance that haven't been surveyed within the last 10 years as L and have an abundance estimate
+	--excludes glacial sites
+	CASE WHEN rank <= 0.5 * total_rank AND priority_type = 'Top' THEN 'H' 
+		WHEN rank > 0.5 * total_rank AND priority_type = 'Top' THEN 'M' 
+		WHEN priority_type = 'Bottom' AND last_surveyed <= '2016-12-31' AND abund_est <> 0 THEN 'L'
 		ELSE 'not_selected' END AS priority
 FROM(
 	SELECT stockid, stockname, polyid, last_surveyed, abund_est, running_abund, total_abund, rank, 
@@ -171,7 +174,7 @@ CREATE VIEW surv_pv_cst.geo_priorities_202608 AS
      JOIN surv_pv_cst.geo_polys USING (polyid)
   WHERE tbl_effort_priority.priority_process_date = '2026-04-13'::date;
 
---Summarize selected SSus 
+--Summarize selected SSUs 
 SELECT stockname, priority, COUNT(stockid)
 FROM surv_pv_cst.geo_priorities_202608
 GROUP BY (stockname, priority)
